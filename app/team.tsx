@@ -1,46 +1,59 @@
 import {
-  Dimensions,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const isDesktop = width > 1024;
-
 export default function TeamPage() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width > 1024;
+
   const teamMembers = [
     {
       id: '1',
       name: 'Lawrence Guian Sumbi',
-      role: 'BACKEND DEVELOPER',
-      initials: 'LS',
+      role: 'BACKEND DEV',
+      image: require('../assets/images/sumbi.jpg'), // Update filename as needed
     },
     {
       id: '2',
-      name: 'Patricia Ann Mae Obaob',
-      role: 'FRONTEND DEVELOPER',
-      initials: 'PO',
+      name: 'Patricia Mae Obaob',
+      role: 'FRONT & BACKEND DEV',
+      image: require('../assets/images/obaob.jpg'),
     },
     {
       id: '3',
-      name: 'Kris Jaylon G. Mantillas',
+      name: 'Kris Jaylon Mantillas',
       role: 'PROJECT MANAGER',
-      initials: 'KM',
+      image: require('../assets/images/mantillas.jpg'),
     },
     {
       id: '4',
-      name: 'Jaymaica J. Narvasa',
-      role: 'ANALYST',
-      initials: 'JN',
+      name: 'Jaymaica Narvasa',
+      role: 'FRONTEND DEV',
+      image: require('../assets/images/narvasa.jpg'),
     },
     {
       id: '5',
       name: 'Dranreb Misa',
       role: 'DOCUMENTOR',
-      initials: 'DM',
+      image: require('../assets/images/misa.jpg'),
+    },
+    {
+      id: '6',
+      name: 'MJ Verioso',
+      role: 'ANALYST',
+      image: require('../assets/images/verioso.jpg'),
+    },
+    {
+      id: '7',
+      name: 'Mark Kiven Paquit',
+      role: 'ANALYST',
+      image: require('../assets/images/paquit.jpg'),
     },
   ];
 
@@ -59,10 +72,16 @@ export default function TeamPage() {
         {/* --- TEAM MEMBERS GRID --- */}
         <View style={[styles.gridContainer, isDesktop ? styles.gridRow : styles.gridColumn]}>
           {teamMembers.map((member) => (
-            <View key={member.id} style={styles.memberCard}>
+            <View 
+              key={member.id} 
+              style={[
+                styles.memberCard, 
+                { width: isDesktop ? '18%' : '100%' }
+              ]}
+            >
               <View style={styles.avatarContainer}>
                 <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>{member.initials}</Text>
+                  <Image source={member.image} style={styles.avatarImage} />
                 </View>
               </View>
               <Text style={styles.memberName}>{member.name}</Text>
@@ -72,7 +91,7 @@ export default function TeamPage() {
         </View>
 
         {/* --- CONTACT FOOTER BAR --- */}
-        <View style={styles.contactBar}>
+        <View style={[styles.contactBar, { flexDirection: isDesktop ? 'row' : 'column' }]}>
           <View style={styles.contactItem}>
             <Text style={styles.contactIcon}>✉️</Text>
             <Text style={styles.contactText}>payton.support@gmail.com</Text>
@@ -95,7 +114,7 @@ export default function TeamPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Synced with _layout.tsx background
+    backgroundColor: '#0F172A',
   },
   container: {
     flexGrow: 1,
@@ -144,10 +163,9 @@ const styles = StyleSheet.create({
 
   /* Member Card Styles */
   memberCard: {
-    backgroundColor: '#1E293B', // Synced card background from _layout.tsx
+    backgroundColor: '#1E293B',
     borderRadius: 16,
     padding: 24,
-    width: isDesktop ? '18%' : '100%',
     minWidth: 200,
     maxWidth: 220,
     alignItems: 'center',
@@ -166,16 +184,17 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#0F172A', // Synced inner container tone
+    backgroundColor: '#0F172A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#10B981', // Payton green accent
+    borderColor: '#10B981',
+    overflow: 'hidden', // Ensures the image respects the circular border radius
   },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: 'bold',
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   memberName: {
     fontSize: 15,
@@ -187,7 +206,7 @@ const styles = StyleSheet.create({
   memberRole: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#10B981', // Payton green accent for roles
+    color: '#10B981',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -196,11 +215,10 @@ const styles = StyleSheet.create({
   contactBar: {
     width: '100%',
     maxWidth: 800,
-    backgroundColor: '#1E293B', // Synced theme card container
+    backgroundColor: '#1E293B',
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 30,
-    flexDirection: isDesktop ? 'row' : 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
     gap: 15,
@@ -221,7 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   contactText: {
-    color: '#94A3B8', // Consistent muted description tone
+    color: '#94A3B8',
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
