@@ -1,44 +1,46 @@
+import { Ionicons } from '@expo/vector-icons';
 import {
-  Dimensions,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  useWindowDimensions,
+  View
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const isDesktop = width > 1024;
-
 export default function FeaturesPage() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width > 1024;
+
   const featuresData = [
     {
       id: '1',
-      icon: '↗',
+      icon: 'git-compare-outline' as keyof typeof Ionicons.glyphMap,
       title: 'Split Expense',
-      description: 'Split bills with friends and manage shared recurring costs.',
-      previewType: 'split',
+      description: 'Effortlessly divide shared costs and streamline group reimbursements.',
+      imageSource: require('../assets/images/split.jpg'),
     },
     {
       id: '2',
-      icon: '📊',
-      title: 'Expense Tracking',
-      description: 'Log spendings by categories and visualize your insights.',
-      previewType: 'tracking',
+      icon: 'trending-up-outline' as keyof typeof Ionicons.glyphMap,
+      title: 'Budget Allocation',
+      description: 'Strategically distribute funds to optimize financial planning goals.',
+      imageSource: require('../assets/images/budget.jpg'),
     },
     {
       id: '3',
-      icon: '💳',
-      title: 'Payment Status',
-      description: 'Track paid, unpaid, or overdue payments effortlessly.',
-      previewType: 'status',
+      icon: 'shield-checkmark-outline' as keyof typeof Ionicons.glyphMap,
+      title: 'Bill Reminders',
+      description: 'Automate payment tracking to prevent late fees consistently.',
+      imageSource: require('../assets/images/bill.jpg'),
     },
     {
       id: '4',
-      icon: '🤖',
-      title: 'AI-Assisted',
-      description: 'Smart reminders and predictive insights for your budget.',
-      previewType: 'ai',
+      icon: 'scan-outline' as keyof typeof Ionicons.glyphMap,
+      title: 'AI Receipt Scanner',
+      description: 'Extract expense data instantly using advanced optical recognition.',
+      imageSource: require('../assets/images/scan.jpg'),
     },
   ];
 
@@ -57,43 +59,30 @@ export default function FeaturesPage() {
         {/* --- FEATURES GRID / LIST --- */}
         <View style={[styles.gridContainer, isDesktop ? styles.gridRow : styles.gridColumn]}>
           {featuresData.map((item) => (
-            <View key={item.id} style={styles.featureCard}>
+            <View 
+              key={item.id} 
+              style={[
+                styles.featureCard, 
+                { width: isDesktop ? '23%' : '100%' }
+              ]}
+            >
               
               {/* Icon & Details */}
               <View style={styles.cardHeader}>
                 <View style={styles.iconBox}>
-                  <Text style={styles.iconText}>{item.icon}</Text>
+                  <Ionicons name={item.icon} size={22} color="#10B981" />
                 </View>
                 <Text style={styles.cardTitle}>{item.title}</Text>
                 <Text style={styles.cardDescription}>{item.description}</Text>
               </View>
 
-              {/* Visual Preview Box */}
+              {/* Visual Preview Photo */}
               <View style={styles.previewBox}>
-                {item.previewType === 'split' && (
-                  <View style={styles.mockupSplitContainer}>
-                    <View style={styles.mockupCardMini} />
-                    <View style={[styles.mockupCardMini, styles.mockupCardOffset]} />
-                  </View>
-                )}
-                {item.previewType === 'tracking' && (
-                  <View style={styles.mockupTrackingContainer}>
-                    <Text style={styles.mockupAmountText}>$0.00</Text>
-                    <View style={styles.mockupBar} />
-                  </View>
-                )}
-                {item.previewType === 'status' && (
-                  <View style={styles.mockupStatusContainer}>
-                    <View style={styles.mockupPhoneShape}>
-                      <Text style={styles.mockupPriceText}>$145,900</Text>
-                    </View>
-                  </View>
-                )}
-                {item.previewType === 'ai' && (
-                  <View style={styles.mockupAIContainer}>
-                    <View style={styles.mockupAICircle} />
-                  </View>
-                )}
+                <Image 
+                  source={item.imageSource} 
+                  style={styles.previewImage}
+                  resizeMode="cover"
+                />
               </View>
 
             </View>
@@ -108,7 +97,7 @@ export default function FeaturesPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Synced with _layout.tsx background
+    backgroundColor: '#0F172A',
   },
   container: {
     flexGrow: 1,
@@ -156,13 +145,11 @@ const styles = StyleSheet.create({
 
   /* Feature Card Styles */
   featureCard: {
-    backgroundColor: '#1E293B', // Synced with _layout.tsx border/card theme
+    backgroundColor: '#1E293B',
     borderRadius: 16,
     padding: 24,
-    width: isDesktop ? '23%' : '100%',
     minWidth: 260,
     maxWidth: 300,
-    marginBottom: 20,
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#334155',
@@ -176,18 +163,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#10B981', // Synced with Payton green accent
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(10, 185, 129, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  iconText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    borderWidth: 1,
+    borderColor: 'rgba(10, 185, 129, 0.3)',
   },
   cardTitle: {
     fontSize: 18,
@@ -205,76 +189,14 @@ const styles = StyleSheet.create({
   /* Visual Preview Box Styles */
   previewBox: {
     height: 140,
-    backgroundColor: '#0F172A', // Synced with main layout background
+    backgroundColor: '#0F172A',
     borderRadius: 12,
     overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
     borderWidth: 1,
     borderColor: '#1E293B',
   },
-  mockupSplitContainer: {
-    flexDirection: 'row',
+  previewImage: {
     width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mockupCardMini: {
-    width: 70,
-    height: 90,
-    backgroundColor: '#10B981',
-    borderRadius: 10,
-    position: 'absolute',
-    left: 45,
-  },
-  mockupCardOffset: {
-    backgroundColor: '#FFFFFF',
-    left: 95,
-    transform: [{ scale: 0.9 }],
-  },
-  mockupTrackingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mockupAmountText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  mockupBar: {
-    width: 80,
-    height: 6,
-    backgroundColor: '#10B981',
-    borderRadius: 3,
-  },
-  mockupStatusContainer: {
-    alignItems: 'center',
-  },
-  mockupPhoneShape: {
-    width: 110,
-    height: 100,
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    alignItems: 'center',
-    paddingTop: 12,
-  },
-  mockupPriceText: {
-    color: '#0F172A',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  mockupAIContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mockupAICircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#10B981',
-    opacity: 0.8,
+    height: '100%',
   },
 });

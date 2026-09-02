@@ -1,72 +1,92 @@
 import {
-  Dimensions,
-  SafeAreaView,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const isDesktop = width > 1024;
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutPage() {
-  const aboutCards = [
-    {
-      id: '1',
-      icon: '</>',
-      title: 'Backend',
-      description: 'PHP & SQL for secure data handling.',
-      theme: 'green',
-    },
+  const { width } = useWindowDimensions();
+  const isDesktop = width > 1024;
+
+  const stackItems = [
+    
     {
       id: '2',
-      icon: '🏛️',
-      title: 'Frontend',
-      description: 'Modern HTML, CSS, Tailwind & JS.',
-      theme: 'dark',
-    },
-    {
-      id: '3',
-      icon: '📈',
-      title: 'Tracker',
-      description: 'Monitor transactions effortlessly.',
-      theme: 'dark',
+      icon: 'https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/react/react.png',
+      title: 'React Native',
+      subtitle: 'UI Framework',
     },
     {
       id: '4',
-      icon: '👥',
-      title: 'Integration',
-      description: 'Splitwise-inspired bill sharing.',
-      theme: 'green',
+      icon: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg',
+      title: 'Gemini AI',
+      subtitle: 'Intelligence',
+    },
+    {
+      id: '3',
+      icon: 'https://raw.githubusercontent.com/marwin1991/profile-technology-icons/refs/heads/main/icons/expo.png',
+      title: 'Expo',
+      subtitle: 'Runtime & Build',
+    },
+    
+    {
+      id: '1',
+      icon: require('../assets/images/logo.png'),
+      title: 'Payton',
+      subtitle: 'Core Ecosystem',
     },
   ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        
         <View style={[styles.contentLayout, isDesktop ? styles.rowLayout : styles.columnLayout]}>
           
-          {/* --- LEFT SIDE CARDS GRID --- */}
-          <View style={styles.cardsGrid}>
-            {aboutCards.map((item) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.card,
-                  item.theme === 'green' ? styles.greenCard : styles.darkCard,
-                ]}
-              >
-                <View style={styles.cardHeader}>
-                  <Text style={[styles.iconText, item.theme === 'green' ? styles.whiteText : styles.greenAccentText]}>
-                    {item.icon}
-                  </Text>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                </View>
-                <Text style={styles.cardDescription}>{item.description}</Text>
+          {/* --- LEFT SIDE EXPANDED ECOSYSTEM HUB --- */}
+          <View style={styles.ecosystemWrapper}>
+            <View style={styles.nexusContainer}>
+              <View style={styles.nexusGlowRing} />
+              <View style={styles.nexusCoreCircle}>
+                <Text style={styles.nexusCoreText}>ABOUT</Text>
               </View>
-            ))}
+
+              {stackItems.map((item, index) => {
+                const angle = (index * (360 / stackItems.length)) * (Math.PI / 180);
+                const radius = 180; // Pushed out further for larger cards
+                const cardSize = 140; // Match the new larger nodeCard width/height
+                const containerCenter = 250; // Half of nexusContainer width/height (500 / 2)
+                
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                return (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.nodeCard,
+                      {
+                        left: containerCenter + x - (cardSize / 2),
+                        top: containerCenter + y - (cardSize / 2),
+                      },
+                    ]}
+                  >
+                    <View style={styles.nodeIconWrapper}>
+                      <Image
+                        source={typeof item.icon === 'string' ? { uri: item.icon } : item.icon}
+                        style={styles.nodeImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <Text style={styles.nodeTitle} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.nodeSubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
 
           {/* --- RIGHT SIDE INFO TEXT --- */}
@@ -78,19 +98,21 @@ export default function AboutPage() {
             <Text style={styles.sectionText}>
               Unlike traditional tools, Payton integrates all your financial data in one secure platform, ensuring organization, accuracy, and convenience.
             </Text>
+            <Text style={styles.sectionText}>
+              In building Payton, developers use React Native as a framework, Expo for building, and Gemini as the model used for AI features.
+            </Text>
           </View>
 
         </View>
-
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView> 
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Synced with _layout.tsx background
+    backgroundColor: '#0F172A',
   },
   container: {
     flexGrow: 1,
@@ -110,74 +132,113 @@ const styles = StyleSheet.create({
   },
   rowLayout: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   columnLayout: {
     flexDirection: 'column',
   },
 
-  /* Cards Grid Styles */
-  cardsGrid: {
+  /* Expanded Ecosystem Hub Styles */
+  ecosystemWrapper: {
     flex: 1,
     width: '100%',
-    maxWidth: 560,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 20,
-    justifyContent: 'center',
-  },
-  card: {
-    width: '47%',
-    minWidth: 230,
-    borderRadius: 16,
-    padding: 24,
-    justifyContent: 'space-between',
-    height: 160,
-    borderWidth: 1,
-    borderColor: '#334155',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  greenCard: {
-    backgroundColor: '#10B981', // Synced with Payton green accent
-    borderColor: '#10B981',
-  },
-  darkCard: {
-    backgroundColor: '#1E293B', // Synced with _layout.tsx card theme
-  },
-  cardHeader: {
-    flexDirection: 'row',
+    maxWidth: 620,
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'center',
+    height: 540,
   },
-  iconText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  nexusContainer: {
+    width: 500,
+    height: 500,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  whiteText: {
-    color: '#FFFFFF',
+  nexusGlowRing: {
+    position: 'absolute',
+    width: 390,
+    height: 390,
+    borderRadius: 200,
+    borderWidth: 2,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    backgroundColor: 'rgba(16, 185, 129, 0.04)',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 25,
+    elevation: 10,
   },
-  greenAccentText: {
-    color: '#10B981', // Synced green accent for dark cards
+  nexusCoreCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 60,
+    backgroundColor: '#1E293B',
+    borderWidth: 2,
+    borderColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  cardTitle: {
-    fontSize: 18,
+  nexusCoreText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#10B981',
+    letterSpacing: 1,
+  },
+  nodeCard: {
+    position: 'absolute',
+    width: 140,  // Increased from 120 to 140
+    height: 140, // Increased from 120 to 140
+    borderRadius: 32,
+    backgroundColor: '#1E293B',
+    borderWidth: 2,
+    borderColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 3,
+  },
+  nodeIconWrapper: {
+    width: 56,  // Increased from 48 to 56
+    height: 56,  // Increased from 48 to 56
+    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  nodeImage: {
+    width: 32,   // Scaled icon size inside wrapper
+    height: 32,
+  },
+  nodeTitle: {
+    fontSize: 14,  // Increased typography scale slightly
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    textAlign: 'center',
   },
-  cardDescription: {
-    fontSize: 13,
+  nodeSubtitle: {
+    fontSize: 11,  // Increased typography scale slightly
     color: '#94A3B8',
-    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 2,
   },
 
   /* Right Side Info Section Styles */
   infoSection: {
     flex: 1,
     maxWidth: 540,
+    width: '100%',
   },
   sectionTitle: {
     fontSize: 36,
