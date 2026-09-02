@@ -1,253 +1,189 @@
-import { Ionicons } from '@expo/vector-icons';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    useWindowDimensions,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
-export default function AboutScreen() {
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 1024;
+const { width } = Dimensions.get('window');
+const isDesktop = width > 1024;
 
+export default function AboutPage() {
   const aboutCards = [
     {
+      id: '1',
+      icon: '</>',
       title: 'Backend',
       description: 'PHP & SQL for secure data handling.',
-      icon: 'code-slash-outline' as const,
-      variant: 'solid' as const,
+      theme: 'purple',
     },
     {
+      id: '2',
+      icon: '🏛️',
       title: 'Frontend',
       description: 'Modern HTML, CSS, Tailwind & JS.',
-      icon: 'layers-outline' as const,
-      variant: 'outlined' as const,
+      theme: 'dark',
     },
     {
+      id: '3',
+      icon: '📈',
       title: 'Tracker',
       description: 'Monitor transactions effortlessly.',
-      icon: 'stats-chart-outline' as const,
-      variant: 'outlined' as const,
+      theme: 'dark',
     },
     {
+      id: '4',
+      icon: '👥',
       title: 'Integration',
       description: 'Splitwise-inspired bill sharing.',
-      icon: 'people-outline' as const,
-      variant: 'solid' as const,
+      theme: 'purple',
     },
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View
-        style={[
-          styles.contentWrapper,
-          { flexDirection: isDesktop ? 'row' : 'column-reverse' },
-        ]}
-      >
-        {/* Left Side: Asymmetric Grid of Info Cards */}
-        <View style={styles.gridColumn}>
-          <View style={styles.cardColumnGroup}>
-            {aboutCards.slice(0, 2).map((item, index) => (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        
+        <View style={[styles.contentLayout, isDesktop ? styles.rowLayout : styles.columnLayout]}>
+          
+          {/* --- LEFT SIDE CARDS GRID --- */}
+          <View style={styles.cardsGrid}>
+            {aboutCards.map((item) => (
               <View
-                key={index}
+                key={item.id}
                 style={[
-                  styles.infoCard,
-                  item.variant === 'solid' ? styles.solidCard : styles.outlinedCard,
+                  styles.card,
+                  item.theme === 'purple' ? styles.purpleCard : styles.darkCard,
                 ]}
               >
-                <View
-                  style={[
-                    styles.iconContainer,
-                    item.variant === 'solid'
-                      ? styles.solidIconContainer
-                      : styles.outlinedIconContainer,
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={24}
-                    color={item.variant === 'solid' ? '#FFFFFF' : '#10B981'}
-                  />
+                <View style={styles.cardHeader}>
+                  <Text style={[styles.iconText, item.theme === 'purple' ? styles.whiteText : styles.purpleAccentText]}>
+                    {item.icon}
+                  </Text>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
                 </View>
-                <Text
-                  style={[
-                    styles.cardTitle,
-                    item.variant === 'solid' && styles.whiteText,
-                  ]}
-                >
-                  {item.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.cardDescription,
-                    item.variant === 'solid' && styles.lightText,
-                  ]}
-                >
-                  {item.description}
-                </Text>
+                <Text style={styles.cardDescription}>{item.description}</Text>
               </View>
             ))}
           </View>
 
-          <View style={[styles.cardColumnGroup, styles.offsetColumn]}>
-            {aboutCards.slice(2, 4).map((item, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.infoCard,
-                  item.variant === 'solid' ? styles.solidCard : styles.outlinedCard,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.iconContainer,
-                    item.variant === 'solid'
-                      ? styles.solidIconContainer
-                      : styles.outlinedIconContainer,
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={24}
-                    color={item.variant === 'solid' ? '#FFFFFF' : '#10B981'}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.cardTitle,
-                    item.variant === 'solid' && styles.whiteText,
-                  ]}
-                >
-                  {item.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.cardDescription,
-                    item.variant === 'solid' && styles.lightText,
-                  ]}
-                >
-                  {item.description}
-                </Text>
-              </View>
-            ))}
+          {/* --- RIGHT SIDE INFO TEXT --- */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>WHAT IS PAYTON?</Text>
+            <Text style={styles.sectionText}>
+              We are more than a tracker. Payton is an intelligent financial ecosystem that provides actionable recommendations to help you make smarter financial decisions.
+            </Text>
+            <Text style={styles.sectionText}>
+              Unlike traditional tools, Payton integrates all your financial data in one secure platform, ensuring organization, accuracy, and convenience.
+            </Text>
           </View>
+
         </View>
 
-        {/* Right Side: Heading and Explanatory Text */}
-        <View style={styles.textColumn}>
-          <Text style={styles.mainHeading}>WHAT IS PAYTON?</Text>
-          <Text style={styles.paragraph}>
-            We are more than a tracker. Payton is an intelligent financial ecosystem that provides actionable recommendations to help you make smarter financial decisions.
-          </Text>
-          <Text style={styles.paragraph}>
-            Unlike traditional tools, Payton integrates all your financial data in one secure platform, ensuring organization, accuracy, and convenience.
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FAF8FC', // Consistent clean light background matching features page
+  },
+  container: {
     flexGrow: 1,
-    backgroundColor: '#FFFFFF', // Clean white theme background
-    justifyContent: 'center',
-    paddingVertical: 60,
     paddingHorizontal: 24,
+    paddingVertical: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  contentWrapper: {
-    maxWidth: 1280,
+  contentLayout: {
     width: '100%',
-    alignSelf: 'center',
+    maxWidth: 1200,
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 60,
+    gap: 40,
   },
-  gridColumn: {
-    flex: 1,
+  rowLayout: {
     flexDirection: 'row',
-    gap: 20,
-    width: '100%',
-    justifyContent: 'center',
   },
-  cardColumnGroup: {
+  columnLayout: {
+    flexDirection: 'column',
+  },
+
+  /* Cards Grid Styles */
+  cardsGrid: {
     flex: 1,
+    width: '100%',
+    maxWidth: 560,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 20,
-    maxWidth: 280,
-  },
-  offsetColumn: {
-    marginTop: 40, // Creates the staggered/asymmetric layout from the reference
-  },
-  infoCard: {
-    borderRadius: 24,
-    padding: 28,
-    minHeight: 180,
-    justifyContent: 'space-between',
-  },
-  solidCard: {
-    backgroundColor: '#10B981', // Vibrant green theme block
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  outlinedCard: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
   },
-  solidIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  card: {
+    width: '47%',
+    minWidth: 230,
+    borderRadius: 24,
+    padding: 24,
+    justifyContent: 'space-between',
+    height: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  outlinedIconContainer: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
+  purpleCard: {
+    backgroundColor: '#7C3AED',
   },
-  cardTitle: {
+  darkCard: {
+    backgroundColor: '#1E1B4B',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconText: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 6,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
+    fontWeight: 'bold',
   },
   whiteText: {
     color: '#FFFFFF',
   },
-  lightText: {
-    color: '#ECFDF5',
+  purpleAccentText: {
+    color: '#A78BFA',
   },
-  textColumn: {
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  cardDescription: {
+    fontSize: 13,
+    color: '#E5E7EB',
+    lineHeight: 18,
+  },
+
+  /* Right Side Info Section Styles */
+  infoSection: {
     flex: 1,
     maxWidth: 540,
   },
-  mainHeading: {
-    fontSize: 42,
+  sectionTitle: {
+    fontSize: 36,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 24,
+    color: '#111827',
+    marginBottom: 20,
     letterSpacing: 0.5,
   },
-  paragraph: {
+  sectionText: {
     fontSize: 16,
-    color: '#475569',
-    lineHeight: 28,
-    marginBottom: 20,
+    color: '#4B5563',
+    lineHeight: 26,
+    marginBottom: 16,
   },
 });

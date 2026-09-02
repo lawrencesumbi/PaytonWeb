@@ -1,65 +1,59 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Slot, usePathname, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const isDesktop = width > 768;
 
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
-
-  const navItems = [
-    { label: 'HOME', route: '/' },
-    { label: 'FEATURES', route: '/features' },
-    { label: 'ABOUT', route: '/about' },
-    { label: 'TEAM', route: '/team' },
-  ];
 
   return (
-    <View style={styles.container}>
-      {/* Top Header / Navigation Bar */}
-      <View style={styles.header}>
-        <Pressable style={styles.logoContainer} onPress={() => router.push('/')}>
+    <View style={styles.layoutContainer}>
+      {/* --- SHARED TOP NAVIGATION BAR --- */}
+      <View style={styles.navbar}>
+        <TouchableOpacity 
+          style={styles.logoContainer} 
+          onPress={() => router.push('/')}
+        >
           <View style={styles.logoIcon}>
-            <Ionicons name="trending-up" size={20} color="#FFFFFF" />
+            <Text style={styles.logoIconText}>₱</Text>
           </View>
           <Text style={styles.logoText}>PAYTON</Text>
-        </Pressable>
+        </TouchableOpacity>
 
         {isDesktop && (
           <View style={styles.navLinks}>
-            {navItems.map((item) => {
-              const isActive = pathname === item.route;
-              return (
-                <Pressable
-                  key={item.label}
-                  onPress={() => router.push(item.route as any)}
-                  style={styles.navItem}
-                >
-                  <Text style={[styles.navText, isActive && styles.navTextActive]}>
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            <TouchableOpacity onPress={() => router.push('/')}>
+              <Text style={[styles.navLink, pathname === '/' && styles.activeNavLink]}>HOME</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/features')}>
+              <Text style={[styles.navLink, pathname === '/features' && styles.activeNavLink]}>FEATURES</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/about')}>
+              <Text style={[styles.navLink, pathname === '/about' && styles.activeNavLink]}>ABOUT</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/team')}>
+              <Text style={[styles.navLink, pathname === '/team' && styles.activeNavLink]}>TEAM</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        <View style={styles.headerActions}>
-          <Pressable style={styles.iconButton} aria-label="Toggle Theme">
-            <Ionicons name="moon-outline" size={18} color="#1E293B" />
-          </Pressable>
-          <Pressable
+        <View style={styles.navActions}>
+          <TouchableOpacity style={styles.themeToggle}>
+            <Text style={styles.themeToggleText}>🌙</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={styles.getStartedButton}
-            onPress={() => router.push('/get-started')}
+            onPress={() => router.push('/features')}
           >
-            <Text style={styles.getStartedText}>GET STARTED</Text>
-          </Pressable>
+            <Text style={styles.getStartedButtonText}>GET STARTED</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Main Content Area */}
-      <View style={styles.content}>
+      {/* --- PAGE CONTENT SLOT --- */}
+      <View style={styles.contentContainer}>
         <Slot />
       </View>
     </View>
@@ -67,87 +61,87 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  layoutContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FAF8FC',
   },
-  header: {
-    height: 80,
+  navbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F0ECEF',
+    backgroundColor: '#FAF8FC',
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   logoIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#10B981', // Emerald Green theme
-    alignItems: 'center',
+    backgroundColor: '#7C3AED',
     justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  logoIconText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   logoText: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: 0.5,
+    fontWeight: '900',
+    color: '#1E1B4B',
+    letterSpacing: 1,
   },
   navLinks: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 32,
+    gap: 30,
   },
-  navItem: {
-    paddingVertical: 8,
-  },
-  navText: {
+  navLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#6B7280',
     letterSpacing: 0.5,
   },
-  navTextActive: {
-    color: '#10B981',
+  activeNavLink: {
+    color: '#1E1B4B',
+    fontWeight: '800',
   },
-  headerActions: {
+  navActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 15,
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
+  themeToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeToggleText: {
+    fontSize: 16,
   },
   getStartedButton: {
-    backgroundColor: '#10B981',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#7C3AED',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
   },
-  getStartedText: {
+  getStartedButtonText: {
     color: '#FFFFFF',
-    fontWeight: '700',
     fontSize: 13,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
-  content: {
+  contentContainer: {
     flex: 1,
   },
 });
