@@ -47,14 +47,14 @@ export default function LandingPage() {
           {/* Right Mockup Display with Actual Images */}
           <View style={styles.mockupContainer}>
             <Image
-              source={require('../assets/img/spender.png')}
+              source={require('../assets/images/spender.png')}
               style={styles.mockupImageLarge}
               resizeMode="cover"
             />
 
             {isDesktop && (
               <Image
-                source={require('../assets/img/sponsor.png')}
+                source={require('../assets/images/sponsor.png')}
                 style={[styles.mockupImageLarge, styles.phoneMockupOffset]}
                 resizeMode="cover"
               />
