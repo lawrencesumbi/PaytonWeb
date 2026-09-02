@@ -1,10 +1,10 @@
 import {
-    Dimensions,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -75,7 +75,7 @@ export default function TeamPage() {
         <View style={styles.contactBar}>
           <View style={styles.contactItem}>
             <Text style={styles.contactIcon}>✉️</Text>
-            <Text style={styles.contactText}>payton@gmail.com</Text>
+            <Text style={styles.contactText}>payton.support@gmail.com</Text>
           </View>
           <View style={styles.contactItem}>
             <Text style={styles.contactIcon}>📞</Text>
@@ -95,13 +95,16 @@ export default function TeamPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAF8FC', // Clean light background consistent with other pages
+    backgroundColor: '#0F172A', // Synced with _layout.tsx background
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingVertical: 40,
     alignItems: 'center',
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
   },
   
   /* Header Styles */
@@ -111,21 +114,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 10,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   sectionSubtitle: {
     fontSize: 16,
-    color: '#4B5563',
+    color: '#94A3B8',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
 
   /* Grid Layout */
   gridContainer: {
     width: '100%',
-    maxWidth: 1200,
     gap: 20,
     marginBottom: 50,
   },
@@ -141,48 +144,50 @@ const styles = StyleSheet.create({
 
   /* Member Card Styles */
   memberCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    backgroundColor: '#1E293B', // Synced card background from _layout.tsx
+    borderRadius: 16,
     padding: 24,
     width: isDesktop ? '18%' : '100%',
     minWidth: 200,
     maxWidth: 220,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatarContainer: {
     marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#1E1B4B',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#0F172A', // Synced inner container tone
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#7C3AED',
+    borderWidth: 2,
+    borderColor: '#10B981', // Payton green accent
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
   },
   memberName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 6,
   },
   memberRole: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#7C3AED',
+    color: '#10B981', // Payton green accent for roles
     textAlign: 'center',
     letterSpacing: 0.5,
   },
@@ -191,19 +196,21 @@ const styles = StyleSheet.create({
   contactBar: {
     width: '100%',
     maxWidth: 800,
-    backgroundColor: '#7C3AED',
-    borderRadius: 40,
+    backgroundColor: '#1E293B', // Synced theme card container
+    borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 30,
     flexDirection: isDesktop ? 'row' : 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
     gap: 15,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   contactItem: {
     flexDirection: 'row',
@@ -214,8 +221,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   contactText: {
-    color: '#FFFFFF',
+    color: '#94A3B8', // Consistent muted description tone
     fontSize: 14,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });

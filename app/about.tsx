@@ -1,10 +1,10 @@
 import {
-    Dimensions,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -17,7 +17,7 @@ export default function AboutPage() {
       icon: '</>',
       title: 'Backend',
       description: 'PHP & SQL for secure data handling.',
-      theme: 'purple',
+      theme: 'green',
     },
     {
       id: '2',
@@ -38,7 +38,7 @@ export default function AboutPage() {
       icon: '👥',
       title: 'Integration',
       description: 'Splitwise-inspired bill sharing.',
-      theme: 'purple',
+      theme: 'green',
     },
   ];
 
@@ -55,11 +55,11 @@ export default function AboutPage() {
                 key={item.id}
                 style={[
                   styles.card,
-                  item.theme === 'purple' ? styles.purpleCard : styles.darkCard,
+                  item.theme === 'green' ? styles.greenCard : styles.darkCard,
                 ]}
               >
                 <View style={styles.cardHeader}>
-                  <Text style={[styles.iconText, item.theme === 'purple' ? styles.whiteText : styles.purpleAccentText]}>
+                  <Text style={[styles.iconText, item.theme === 'green' ? styles.whiteText : styles.greenAccentText]}>
                     {item.icon}
                   </Text>
                   <Text style={styles.cardTitle}>{item.title}</Text>
@@ -90,18 +90,20 @@ export default function AboutPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAF8FC', // Consistent clean light background matching features page
+    backgroundColor: '#0F172A', // Synced with _layout.tsx background
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingVertical: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
   },
   contentLayout: {
     width: '100%',
-    maxWidth: 1200,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 40,
@@ -126,21 +128,24 @@ const styles = StyleSheet.create({
   card: {
     width: '47%',
     minWidth: 230,
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 24,
     justifyContent: 'space-between',
     height: 160,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  purpleCard: {
-    backgroundColor: '#7C3AED',
+  greenCard: {
+    backgroundColor: '#10B981', // Synced with Payton green accent
+    borderColor: '#10B981',
   },
   darkCard: {
-    backgroundColor: '#1E1B4B',
+    backgroundColor: '#1E293B', // Synced with _layout.tsx card theme
   },
   cardHeader: {
     flexDirection: 'row',
@@ -154,18 +159,19 @@ const styles = StyleSheet.create({
   whiteText: {
     color: '#FFFFFF',
   },
-  purpleAccentText: {
-    color: '#A78BFA',
+  greenAccentText: {
+    color: '#10B981', // Synced green accent for dark cards
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   cardDescription: {
     fontSize: 13,
-    color: '#E5E7EB',
-    lineHeight: 18,
+    color: '#94A3B8',
+    lineHeight: 20,
   },
 
   /* Right Side Info Section Styles */
@@ -175,15 +181,16 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 20,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   sectionText: {
     fontSize: 16,
-    color: '#4B5563',
+    color: '#94A3B8',
     lineHeight: 26,
     marginBottom: 16,
+    letterSpacing: 0.5,
   },
 });

@@ -1,5 +1,5 @@
 import { Slot, usePathname, useRouter } from 'expo-router';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 900;
@@ -16,9 +16,11 @@ export default function RootLayout() {
           style={styles.logoContainer} 
           onPress={() => router.push('/')}
         >
-          <View style={styles.logoIcon}>
-            <Text style={styles.logoIconText}>₱</Text>
-          </View>
+          <Image 
+            source={require('../assets/images/logo.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain"
+          />
           <Text style={styles.logoText}>PAYTON</Text>
         </TouchableOpacity>
 
@@ -40,9 +42,7 @@ export default function RootLayout() {
         )}
 
         <View style={styles.navActions}>
-          <TouchableOpacity style={styles.themeToggle}>
-            <Text style={styles.themeToggleText}>🌙</Text>
-          </TouchableOpacity>
+          
           <TouchableOpacity 
             style={styles.getStartedButton}
             onPress={() => router.push('/features')}
@@ -83,18 +83,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  logoIcon: {
+  logoImage: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoIconText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   logoText: {
     fontSize: 22,

@@ -1,10 +1,10 @@
 import {
-    Dimensions,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -108,13 +108,16 @@ export default function FeaturesPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAF8FC', // Clean light background
+    backgroundColor: '#0F172A', // Synced with _layout.tsx background
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingVertical: 40,
     alignItems: 'center',
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
   },
   
   /* Header Styles */
@@ -124,21 +127,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: '900',
+    color: '#FFFFFF',
     marginBottom: 10,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   sectionSubtitle: {
     fontSize: 16,
-    color: '#4B5563',
+    color: '#94A3B8',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
 
   /* Grid Layout */
   gridContainer: {
     width: '100%',
-    maxWidth: 1200,
     gap: 24,
   },
   gridRow: {
@@ -153,58 +156,63 @@ const styles = StyleSheet.create({
 
   /* Feature Card Styles */
   featureCard: {
-    backgroundColor: '#1E1B4B', // Dark card background matching the reference
-    borderRadius: 24,
+    backgroundColor: '#1E293B', // Synced with _layout.tsx border/card theme
+    borderRadius: 16,
     padding: 24,
     width: isDesktop ? '23%' : '100%',
     minWidth: 260,
     maxWidth: 300,
     marginBottom: 20,
     justifyContent: 'space-between',
-    shadowColor: '#1E1B4B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
   },
   cardHeader: {
     marginBottom: 20,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#7C3AED',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#10B981', // Synced with Payton green accent
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   iconText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 8,
+    letterSpacing: 0.5,
   },
   cardDescription: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: '#94A3B8',
     lineHeight: 20,
   },
 
   /* Visual Preview Box Styles */
   previewBox: {
     height: 140,
-    backgroundColor: '#151338',
-    borderRadius: 16,
+    backgroundColor: '#0F172A', // Synced with main layout background
+    borderRadius: 12,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+    borderWidth: 1,
+    borderColor: '#1E293B',
   },
   mockupSplitContainer: {
     flexDirection: 'row',
@@ -215,7 +223,7 @@ const styles = StyleSheet.create({
   mockupCardMini: {
     width: 70,
     height: 90,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#10B981',
     borderRadius: 10,
     position: 'absolute',
     left: 45,
@@ -238,7 +246,7 @@ const styles = StyleSheet.create({
   mockupBar: {
     width: 80,
     height: 6,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#10B981',
     borderRadius: 3,
   },
   mockupStatusContainer: {
@@ -254,7 +262,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   mockupPriceText: {
-    color: '#1E1B4B',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -266,7 +274,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#10B981',
     opacity: 0.8,
   },
 });
