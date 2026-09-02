@@ -2,7 +2,7 @@ import { Slot, usePathname, useRouter } from 'expo-router';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const isDesktop = width > 768;
+const isDesktop = width > 900;
 
 export default function RootLayout() {
   const router = useRouter();
@@ -63,30 +63,33 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   layoutContainer: {
     flex: 1,
-    backgroundColor: '#FAF8FC',
+    backgroundColor: '#0F172A',
   },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0ECEF',
-    backgroundColor: '#FAF8FC',
+    borderBottomColor: '#1E293B',
+    backgroundColor: '#0F172A',
+    maxWidth: 1280,
+    width: '100%',
+    alignSelf: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
   logoIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
   },
   logoIconText: {
     color: '#FFFFFF',
@@ -96,44 +99,51 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#1E1B4B',
+    color: '#FFFFFF',
     letterSpacing: 1,
   },
   navLinks: {
     flexDirection: 'row',
-    gap: 30,
+    gap: 32,
   },
   navLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#94A3B8',
     letterSpacing: 0.5,
   },
   activeNavLink: {
-    color: '#1E1B4B',
+    color: '#10B981',
     fontWeight: '800',
   },
   navActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: 16,
   },
   themeToggle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F3F4F6',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1E293B',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
   },
   themeToggleText: {
     fontSize: 16,
   },
   getStartedButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#10B981',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 25,
+    borderRadius: 10,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   getStartedButtonText: {
     color: '#FFFFFF',
