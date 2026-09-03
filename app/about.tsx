@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Image,
   ScrollView,
@@ -6,6 +7,13 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutPage() {
@@ -13,7 +21,6 @@ export default function AboutPage() {
   const isDesktop = width > 1024;
 
   const stackItems = [
-    
     {
       id: '2',
       icon: 'https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/react/react.png',
@@ -32,7 +39,6 @@ export default function AboutPage() {
       title: 'Expo',
       subtitle: 'Runtime & Build',
     },
-    
     {
       id: '1',
       icon: require('../assets/images/logo.png'),
@@ -41,6 +47,25 @@ export default function AboutPage() {
     },
   ];
 
+  const containerSize = 500;
+  const containerCenter = containerSize / 2;
+  const radius = 170;
+  const cardSize = 140;
+
+  // Shared value for continuous rotation (0 to 360 degrees)
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, {
+        duration: 25000, // 25 seconds for a full smooth rotation
+        easing: Easing.linear,
+      }),
+      -1, // Infinite loop
+      false
+    );
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -48,30 +73,39 @@ export default function AboutPage() {
           
           {/* --- LEFT SIDE EXPANDED ECOSYSTEM HUB --- */}
           <View style={styles.ecosystemWrapper}>
-            <View style={styles.nexusContainer}>
+            <View style={[styles.nexusContainer, { width: containerSize, height: containerSize }]}>
               <View style={styles.nexusGlowRing} />
               <View style={styles.nexusCoreCircle}>
                 <Text style={styles.nexusCoreText}>ABOUT</Text>
               </View>
 
               {stackItems.map((item, index) => {
-                const angle = (index * (360 / stackItems.length)) * (Math.PI / 180);
-                const radius = 180; // Pushed out further for larger cards
-                const cardSize = 140; // Match the new larger nodeCard width/height
-                const containerCenter = 250; // Half of nexusContainer width/height (500 / 2)
-                
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
+                // Calculate initial angle per item, adding rotation for movement
+                const baseAngle = index * (360 / stackItems.length);
+
+                const animatedNodeStyle = useAnimatedStyle(() => {
+                  const currentAngleRad = ((baseAngle + rotation.value) * Math.PI) / 180;
+                  const x = Math.cos(currentAngleRad) * radius;
+                  const y = Math.sin(currentAngleRad) * radius;
+
+                  return {
+                    transform: [
+                      { translateX: x },
+                      { translateY: y },
+                    ],
+                  };
+                });
 
                 return (
-                  <View
+                  <Animated.View
                     key={item.id}
                     style={[
                       styles.nodeCard,
                       {
-                        left: containerCenter + x - (cardSize / 2),
-                        top: containerCenter + y - (cardSize / 2),
+                        left: containerCenter - cardSize / 2,
+                        top: containerCenter - cardSize / 2,
                       },
+                      animatedNodeStyle,
                     ]}
                   >
                     <View style={styles.nodeIconWrapper}>
@@ -83,7 +117,7 @@ export default function AboutPage() {
                     </View>
                     <Text style={styles.nodeTitle} numberOfLines={1}>{item.title}</Text>
                     <Text style={styles.nodeSubtitle} numberOfLines={1}>{item.subtitle}</Text>
-                  </View>
+                  </Animated.View>
                 );
               })}
             </View>
@@ -116,7 +150,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     paddingVertical: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -127,12 +161,12 @@ const styles = StyleSheet.create({
   contentLayout: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     gap: 40,
   },
   rowLayout: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-around',
   },
   columnLayout: {
     flexDirection: 'column',
@@ -140,25 +174,22 @@ const styles = StyleSheet.create({
 
   /* Expanded Ecosystem Hub Styles */
   ecosystemWrapper: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 620,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 540,
+    width: '100%',
+    maxWidth: 540,
+    height: 520,
   },
   nexusContainer: {
-    width: 500,
-    height: 500,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   nexusGlowRing: {
     position: 'absolute',
-    width: 390,
-    height: 390,
-    borderRadius: 200,
+    width: 380,
+    height: 380,
+    borderRadius: 190,
     borderWidth: 2,
     borderColor: 'rgba(16, 185, 129, 0.35)',
     backgroundColor: 'rgba(16, 185, 129, 0.04)',
@@ -171,7 +202,7 @@ const styles = StyleSheet.create({
   nexusCoreCircle: {
     width: 80,
     height: 80,
-    borderRadius: 60,
+    borderRadius: 40,
     backgroundColor: '#1E293B',
     borderWidth: 2,
     borderColor: '#10B981',
@@ -192,8 +223,8 @@ const styles = StyleSheet.create({
   },
   nodeCard: {
     position: 'absolute',
-    width: 140,  // Increased from 120 to 140
-    height: 140, // Increased from 120 to 140
+    width: 140,
+    height: 140,
     borderRadius: 32,
     backgroundColor: '#1E293B',
     borderWidth: 2,
@@ -209,8 +240,8 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   nodeIconWrapper: {
-    width: 56,  // Increased from 48 to 56
-    height: 56,  // Increased from 48 to 56
+    width: 56,
+    height: 56,
     borderRadius: 16,
     backgroundColor: 'rgba(15, 23, 42, 0.7)',
     alignItems: 'center',
@@ -218,17 +249,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   nodeImage: {
-    width: 32,   // Scaled icon size inside wrapper
+    width: 32,
     height: 32,
   },
   nodeTitle: {
-    fontSize: 14,  // Increased typography scale slightly
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   nodeSubtitle: {
-    fontSize: 11,  // Increased typography scale slightly
+    fontSize: 11,
     color: '#94A3B8',
     textAlign: 'center',
     marginTop: 2,
