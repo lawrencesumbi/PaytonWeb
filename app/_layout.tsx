@@ -8,49 +8,53 @@ export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // I-check kung ang kasamtangang page kay naa sa auth (eg. /login, /signup)
+  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/(auth)');
+
   return (
     <View style={styles.layoutContainer}>
-      {/* --- SHARED TOP NAVIGATION BAR --- */}
-      <View style={styles.navbar}>
-        <TouchableOpacity 
-          style={styles.logoContainer} 
-          onPress={() => router.push('/')}
-        >
-          <Image 
-            source={require('../assets/images/logo.png')} 
-            style={styles.logoImage} 
-            resizeMode="contain"
-          />
-          <Text style={styles.logoText}>PAYTON</Text>
-        </TouchableOpacity>
+      {/* --- SHARED TOP NAVIGATION BAR (I-hide kung auth route) --- */}
+      {!isAuthRoute && (
+        <View style={styles.navbar}>
+          <TouchableOpacity 
+            style={styles.logoContainer} 
+            onPress={() => router.push('/')}
+          >
+            <Image 
+              source={require('../assets/images/logo.png')} 
+              style={styles.logoImage} 
+              resizeMode="contain"
+            />
+            <Text style={styles.logoText}>PAYTON</Text>
+          </TouchableOpacity>
 
-        {isDesktop && (
-          <View style={styles.navLinks}>
-            <TouchableOpacity onPress={() => router.push('/')}>
-              <Text style={[styles.navLink, pathname === '/' && styles.activeNavLink]}>HOME</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/features')}>
-              <Text style={[styles.navLink, pathname === '/features' && styles.activeNavLink]}>FEATURES</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/about')}>
-              <Text style={[styles.navLink, pathname === '/about' && styles.activeNavLink]}>ABOUT</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/team')}>
-              <Text style={[styles.navLink, pathname === '/team' && styles.activeNavLink]}>TEAM</Text>
+          {isDesktop && (
+            <View style={styles.navLinks}>
+              <TouchableOpacity onPress={() => router.push('/')}>
+                <Text style={[styles.navLink, pathname === '/' && styles.activeNavLink]}>HOME</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/features')}>
+                <Text style={[styles.navLink, pathname === '/features' && styles.activeNavLink]}>FEATURES</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/about')}>
+                <Text style={[styles.navLink, pathname === '/about' && styles.activeNavLink]}>ABOUT</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/team')}>
+                <Text style={[styles.navLink, pathname === '/team' && styles.activeNavLink]}>TEAM</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.navActions}>
+            <TouchableOpacity 
+              style={styles.getStartedButton}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.getStartedButtonText}>GET STARTED</Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.navActions}>
-          
-          <TouchableOpacity 
-            style={styles.getStartedButton}
-            onPress={() => router.push('/features')}
-          >
-            <Text style={styles.getStartedButtonText}>GET STARTED</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      )}
 
       {/* --- PAGE CONTENT SLOT --- */}
       <View style={styles.contentContainer}>
@@ -112,19 +116,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-  },
-  themeToggle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1E293B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  themeToggleText: {
-    fontSize: 16,
   },
   getStartedButton: {
     backgroundColor: '#10B981',

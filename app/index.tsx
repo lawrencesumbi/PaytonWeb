@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import {
   Dimensions,
   Image,
@@ -11,6 +12,7 @@ import {
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 900;
+const router = useRouter();
 
 export default function LandingPage() {
   return (
@@ -37,10 +39,10 @@ export default function LandingPage() {
             </Text>
 
             <View style={styles.buttonGroup}>
-              <TouchableOpacity style={styles.primaryButton}>
+              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/features')}>
                 <Text style={styles.primaryButtonText}>Start Tracking Now</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryButton}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/team')}>
                 <Text style={styles.secondaryButtonText}>Contact Us</Text>
               </TouchableOpacity>
             </View>
@@ -208,9 +210,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   primaryButtonText: {
     color: '#FFFFFF',
