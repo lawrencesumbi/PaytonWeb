@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react';
 import {
+  Animated,
+  Easing,
   Image,
   SafeAreaView,
   ScrollView,
@@ -17,7 +20,7 @@ export default function TeamPage() {
       id: '1',
       name: 'Lawrence Guian Sumbi',
       role: 'BACKEND DEV',
-      image: require('../assets/images/sumbi.jpg'), // Update filename as needed
+      image: require('../assets/images/sumbi.jpg'),
     },
     {
       id: '2',
@@ -57,9 +60,34 @@ export default function TeamPage() {
     },
   ];
 
+  // Duplicate the array to create a seamless infinite loop
+  const extendedMembers = [...teamMembers, ...teamMembers];
+
+  // Animation value for horizontal translation
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  // Each card width (220px) + gap (20px) = 240px per item block
+  const ITEM_WIDTH = 240;
+  const totalWidth = teamMembers.length * ITEM_WIDTH;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(scrollX, {
+        toValue: -totalWidth,
+        duration: 25000, // Adjust speed: higher = slower, lower = faster
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [scrollX, totalWidth]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         
         {/* --- HEADER SECTION --- */}
         <View style={styles.headerSection}>
@@ -69,25 +97,28 @@ export default function TeamPage() {
           </Text>
         </View>
 
-        {/* --- TEAM MEMBERS GRID --- */}
-        <View style={[styles.gridContainer, isDesktop ? styles.gridRow : styles.gridColumn]}>
-          {teamMembers.map((member) => (
-            <View 
-              key={member.id} 
-              style={[
-                styles.memberCard, 
-                { width: isDesktop ? '18%' : '100%' }
-              ]}
-            >
-              <View style={styles.avatarContainer}>
-                <View style={styles.avatarPlaceholder}>
-                  <Image source={member.image} style={styles.avatarImage} />
+        {/* --- CONTINUOUS SLIDING TEAM CAROUSEL --- */}
+        <View style={styles.carouselContainer}>
+          <Animated.View
+            style={[
+              styles.track,
+              {
+                transform: [{ translateX: scrollX }],
+              },
+            ]}
+          >
+            {extendedMembers.map((member, index) => (
+              <View key={`${member.id}-${index}`} style={styles.memberCard}>
+                <View style={styles.avatarContainer}>
+                  <View style={styles.avatarPlaceholder}>
+                    <Image source={member.image} style={styles.avatarImage} />
+                  </View>
                 </View>
+                <Text style={styles.memberName} numberOfLines={2}>{member.name}</Text>
+                <Text style={styles.memberRole}>{member.role}</Text>
               </View>
-              <Text style={styles.memberName}>{member.name}</Text>
-              <Text style={styles.memberRole}>{member.role}</Text>
-            </View>
-          ))}
+            ))}
+          </Animated.View>
         </View>
 
         {/* --- CONTACT FOOTER BAR --- */}
@@ -118,10 +149,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     paddingVertical: 40,
     alignItems: 'center',
-    maxWidth: 1280,
     width: '100%',
     alignSelf: 'center',
   },
@@ -132,32 +162,29 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   sectionTitle: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '900',
     color: '#FFFFFF',
     marginBottom: 10,
     letterSpacing: 1,
+    textAlign: 'center',
   },
   sectionSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#94A3B8',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
 
-  /* Grid Layout */
-  gridContainer: {
+  /* Carousel Layout */
+  carouselContainer: {
     width: '100%',
-    gap: 20,
+    overflow: 'hidden',
     marginBottom: 50,
   },
-  gridRow: {
+  track: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  gridColumn: {
-    flexDirection: 'column',
+    gap: 20,
     alignItems: 'center',
   },
 
@@ -165,10 +192,9 @@ const styles = StyleSheet.create({
   memberCard: {
     backgroundColor: '#1E293B',
     borderRadius: 16,
-    padding: 24,
-    minWidth: 200,
-    maxWidth: 220,
+    padding: 20,
     alignItems: 'center',
+    width: 220,
     borderWidth: 1,
     borderColor: '#334155',
     shadowColor: '#000000',
@@ -181,15 +207,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   avatarPlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: '#0F172A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#10B981',
-    overflow: 'hidden', // Ensures the image respects the circular border radius
+    overflow: 'hidden',
   },
   avatarImage: {
     width: '100%',
@@ -197,11 +223,12 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   memberName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 6,
+    minHeight: 36,
   },
   memberRole: {
     fontSize: 11,
@@ -218,7 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E293B',
     borderRadius: 16,
     paddingVertical: 20,
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
     justifyContent: 'space-around',
     alignItems: 'center',
     gap: 15,
@@ -240,7 +267,7 @@ const styles = StyleSheet.create({
   },
   contactText: {
     color: '#94A3B8',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
