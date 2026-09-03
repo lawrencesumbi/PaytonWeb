@@ -1,4 +1,4 @@
-// app/(admin)/friends.tsx
+// app/(admin)/income.tsx
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -12,50 +12,56 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
-interface Friend {
+interface IncomeItem {
   id: string;
   user_id: string;
-  full_name: string;
-  email: string;
-  created_at: string;
+  source_name: string;
+  amount: number;
+  start_date: string;
+  end_date: string;
+  received_at: string;
 }
 
-export default function FriendsScreen() {
-  const [friends, setFriends] = useState<Friend[]>([]);
+export default function IncomeScreen() {
+  const [incomes, setIncomes] = useState<IncomeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal / Edit state
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingItem, setEditingItem] = useState<Friend | null>(null);
+  const [editingItem, setEditingItem] = useState<IncomeItem | null>(null);
   
   // Form fields
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [sourceName, setSourceName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  const fetchFriends = async () => {
+  const fetchIncomes = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('friends')
+      .from('income')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('received_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching friends:', error.message);
+      console.error('Error fetching income:', error.message);
     } else {
-      setFriends(data || []);
+      setIncomes(data || []);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchFriends();
+    fetchIncomes();
   }, []);
 
-  const handleOpenEdit = (item: Friend) => {
+  const handleOpenEdit = (item: IncomeItem) => {
     setEditingItem(item);
-    setFullName(item.full_name || '');
-    setEmail(item.email || '');
+    setSourceName(item.source_name || '');
+    setAmount(item.amount?.toString() || '');
+    setStartDate(item.start_date || '');
+    setEndDate(item.end_date || '');
     setModalVisible(true);
   };
 
@@ -63,39 +69,41 @@ export default function FriendsScreen() {
     if (!editingItem) return;
 
     const { error } = await supabase
-      .from('friends')
+      .from('income')
       .update({
-        full_name: fullName,
-        email: email,
+        source_name: sourceName,
+        amount: parseFloat(amount) || 0,
+        start_date: startDate,
+        end_date: endDate,
       })
       .eq('id', editingItem.id);
 
     if (error) {
-      alert('Error updating friend: ' + error.message);
+      alert('Error updating income: ' + error.message);
     } else {
       setModalVisible(false);
-      fetchFriends();
+      fetchIncomes();
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this friend record?')) return;
+    if (!confirm('Are you sure you want to delete this income record?')) return;
 
     const { error } = await supabase
-      .from('friends')
+      .from('income')
       .delete()
       .eq('id', id);
 
     if (error) {
       alert('Error deleting record: ' + error.message);
     } else {
-      fetchFriends();
+      fetchIncomes();
     }
   };
 
-  const filteredFriends = friends.filter(item => 
-    item.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredIncomes = incomes.filter(item => 
+    item.source_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.amount?.toString().includes(searchQuery)
   );
 
   return (
@@ -103,12 +111,12 @@ export default function FriendsScreen() {
       {/* Header Section */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>Friends Management</Text>
-          <Text style={styles.subtitle}>View, edit, or delete records from the friends table</Text>
+          <Text style={styles.title}>Income Management</Text>
+          <Text style={styles.subtitle}>View, edit, or delete records from the income table</Text>
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by name or email..."
+          placeholder="Search by source name or amount..."
           placeholderTextColor="#64748B"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -124,29 +132,33 @@ export default function FriendsScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colName]}>Full Name</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colEmail]}>Email</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Created At</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colSource]}>Source Name</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Start Date</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>End Date</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colActions]}>Actions</Text>
           </View>
 
           {/* Table Body */}
           <ScrollView style={{ maxHeight: 600 }}>
-            {filteredFriends.length === 0 ? (
+            {filteredIncomes.length === 0 ? (
               <View style={styles.emptyRow}>
-                <Text style={styles.emptyText}>No friend records found.</Text>
+                <Text style={styles.emptyText}>No income records found.</Text>
               </View>
             ) : (
-              filteredFriends.map((item) => (
+              filteredIncomes.map((item) => (
                 <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
-                    {item.full_name}
+                  <Text style={[styles.tableCell, styles.colSource, styles.textWhite]} numberOfLines={1}>
+                    {item.source_name}
                   </Text>
-                  <Text style={[styles.tableCell, styles.colEmail, styles.textGreen]} numberOfLines={1}>
-                    {item.email}
+                  <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
+                    ₱{Number(item.amount).toLocaleString()}
                   </Text>
                   <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
-                    {new Date(item.created_at).toLocaleDateString()}
+                    {item.start_date}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
+                    {item.end_date}
                   </Text>
                   <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
                     <TouchableOpacity 
@@ -173,22 +185,38 @@ export default function FriendsScreen() {
       <Modal visible={modalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Friend</Text>
+            <Text style={styles.modalTitle}>Edit Income</Text>
 
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>Source Name</Text>
             <TextInput 
               style={styles.input} 
-              value={fullName} 
-              onChangeText={setFullName} 
+              value={sourceName} 
+              onChangeText={setSourceName} 
               placeholderTextColor="#64748B"
             />
 
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Amount</Text>
             <TextInput 
               style={styles.input} 
-              value={email} 
-              onChangeText={setEmail} 
-              keyboardType="email-address"
+              value={amount} 
+              onChangeText={setAmount} 
+              keyboardType="numeric"
+              placeholderTextColor="#64748B"
+            />
+
+            <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
+            <TextInput 
+              style={styles.input} 
+              value={startDate} 
+              onChangeText={setStartDate} 
+              placeholderTextColor="#64748B"
+            />
+
+            <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
+            <TextInput 
+              style={styles.input} 
+              value={endDate} 
+              onChangeText={setEndDate} 
               placeholderTextColor="#64748B"
             />
 
@@ -276,8 +304,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  colName: { flex: 2 },
-  colEmail: { flex: 2.5 },
+  colSource: { flex: 2 },
+  colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },
   colActions: { flex: 2, alignItems: 'flex-end' },
   textWhite: { color: '#F8FAFC', fontWeight: '600' },
