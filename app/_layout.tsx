@@ -8,13 +8,18 @@ export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // I-check kung ang kasamtangang page kay naa sa auth (eg. /login, /signup)
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/(auth)');
+  // I-check kung ang page kay naa sa auth (login/signup) O kaya sa admin routes
+  const hideNavbar = 
+    pathname.startsWith('/login') || 
+    pathname.startsWith('/signup') || 
+    pathname.startsWith('/(auth)') || 
+    pathname.includes('/(admin)') || 
+    pathname.startsWith('/dashboard');
 
   return (
     <View style={styles.layoutContainer}>
-      {/* --- SHARED TOP NAVIGATION BAR (I-hide kung auth route) --- */}
-      {!isAuthRoute && (
+      {/* --- SHARED TOP NAVIGATION BAR (I-hide kung auth o admin route na) --- */}
+      {!hideNavbar && (
         <View style={styles.navbar}>
           <TouchableOpacity 
             style={styles.logoContainer} 
