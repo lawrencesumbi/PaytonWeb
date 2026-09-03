@@ -46,20 +46,20 @@ export default function AdminLayout() {
     router.replace('/(auth)/login' as any);
   };
 
-  // Kompleto nga navigation base sa imong Supabase tables
+  // Gi-align nato ang paths sa kung unsa ang makita sa browser URL (e.g. /dashboard)
   const navItems = [
-    { name: 'Dashboard', path: '/(admin)/dashboard' },
-    { name: 'Allowances', path: '/(admin)/allowances' },
-    { name: 'Budgets', path: '/(admin)/budgets' },
-    { name: 'Categories', path: '/(admin)/categories' },
-    { name: 'Expenses', path: '/(admin)/expenses' },
-    { name: 'Friends', path: '/(admin)/friends' },
-    { name: 'Income', path: '/(admin)/income' },
-    { name: 'Profiles', path: '/(admin)/profiles' },
-    { name: 'Reminders', path: '/(admin)/reminders' },
-    { name: 'Split Expenses', path: '/(admin)/split_expenses' },
-    { name: 'Split Friends', path: '/(admin)/split_friends' },
-    { name: 'Sponsor Spenders', path: '/(admin)/sponsor_spenders' },
+    { name: 'Dashboard', path: '/dashboard', routerPath: '/(admin)/dashboard' },
+    { name: 'Allowances', path: '/allowances', routerPath: '/(admin)/allowances' },
+    { name: 'Budgets', path: '/budgets', routerPath: '/(admin)/budgets' },
+    { name: 'Categories', path: '/categories', routerPath: '/(admin)/categories' },
+    { name: 'Expenses', path: '/expenses', routerPath: '/(admin)/expenses' },
+    { name: 'Friends', path: '/friends', routerPath: '/(admin)/friends' },
+    { name: 'Income', path: '/income', routerPath: '/(admin)/income' },
+    { name: 'Profiles', path: '/profiles', routerPath: '/(admin)/profiles' },
+    { name: 'Reminders', path: '/reminders', routerPath: '/(admin)/reminders' },
+    { name: 'Split Expenses', path: '/split_expenses', routerPath: '/(admin)/split_expenses' },
+    { name: 'Split Friends', path: '/split_friends', routerPath: '/(admin)/split_friends' },
+    { name: 'Sponsor Spenders', path: '/sponsor_spenders', routerPath: '/(admin)/sponsor_spenders' },
   ];
 
   return (
@@ -72,12 +72,14 @@ export default function AdminLayout() {
 
         <ScrollView style={styles.sidebarNavLinks} showsVerticalScrollIndicator={false}>
           {navItems.map((item) => {
-            const isActive = pathname === item.path;
+            // Gisusi nato kon ang kasamtangang pathname naglakip ba o natapos sa item path
+            const isActive = pathname === item.path || pathname.endsWith(item.path);
+            
             return (
               <TouchableOpacity
                 key={item.path}
                 style={[styles.navItem, isActive && styles.navItemActive]}
-                onPress={() => router.push(item.path as any)}
+                onPress={() => router.push(item.routerPath as any)}
               >
                 <Text style={[styles.navItemText, isActive && styles.navItemTextActive]}>
                   {item.name}
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   navItemTextActive: {
-    color: '#34D399',
+    color: '#10B981',
     fontWeight: '700',
   },
   sidebarFooter: {
