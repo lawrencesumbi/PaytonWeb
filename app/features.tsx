@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect } from 'react';
 import {
-  Image,
+  ImageSourcePropType,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -9,46 +10,152 @@ import {
   View
 } from 'react-native';
 
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming
+} from 'react-native-reanimated';
+
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+
+type FeatureItem = {
+  id: '1' | '2' | '3' | '4';
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+  imageSource: ImageSourcePropType;
+};
+
+const featuresData: FeatureItem[] = [
+  {
+    id: '1',
+    icon: 'git-compare-outline',
+    title: 'Split Expense',
+    description: 'Effortlessly divide shared costs and streamline group reimbursements.',
+    imageSource: require('../assets/images/split.jpg'),
+  },
+  {
+    id: '2',
+    icon: 'trending-up-outline',
+    title: 'Budget Allocation',
+    description: 'Strategically distribute funds to optimize financial planning goals.',
+    imageSource: require('../assets/images/budget.jpg'),
+  },
+  {
+    id: '3',
+    icon: 'shield-checkmark-outline',
+    title: 'Bill Reminders',
+    description: 'Automate payment tracking to prevent late fees consistently.',
+    imageSource: require('../assets/images/bill.jpg'),
+  },
+  {
+    id: '4',
+    icon: 'scan-outline',
+    title: 'AI Receipt Scanner',
+    description: 'Extract expense data instantly using advanced optical recognition.',
+    imageSource: require('../assets/images/scan.jpg'),
+  },
+];
+
+const AnimatedFeatureCard = ({ 
+  item, 
+  index, 
+  isDesktop 
+}: { 
+  item: FeatureItem; 
+  index: number; 
+  isDesktop: boolean; 
+}) => {
+  const pressed = useSharedValue(0);
+  const entranceAnim = useSharedValue(0); 
+
+  useEffect(() => {
+    entranceAnim.value = withDelay(
+      index * 150,
+      withTiming(1, { duration: 600 })
+    );
+  }, [index, entranceAnim]);
+
+  const entranceAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: entranceAnim.value,
+      transform: [
+        {
+          translateY: interpolate(entranceAnim.value, [0, 1], [50, 0]),
+        },
+      ],
+    };
+  });
+
+  const interactionAnimatedStyle = useAnimatedStyle(() => {
+    const scale = withSpring(pressed.value ? 0.97 : 1, {
+      mass: 0.5,
+      damping: 10,
+    });
+    
+    const borderColor = pressed.value 
+      ? 'rgba(16, 185, 129, 0.8)' 
+      : 'rgba(51, 65, 85, 1)';
+
+    return {
+      transform: [{ scale }],
+      borderColor: borderColor,
+      shadowOpacity: interpolate(pressed.value, [0, 1], [0.2, 0.4]),
+      shadowRadius: interpolate(pressed.value, [0, 1], [8, 12]),
+    };
+  });
+
+  const imageAnimatedStyle = useAnimatedStyle(() => {
+     const imageScale = withSpring(pressed.value ? 1.1 : 1);
+     return {
+       transform: [{ scale: imageScale }]
+     };
+  });
+
+  return (
+    <Animated.View style={[{ width: isDesktop ? '23%' : '100%' }, entranceAnimatedStyle]}>
+      <TouchableWithoutFeedback
+        onPressIn={() => { pressed.value = 1; }}
+        onPressOut={() => { pressed.value = 0; }}
+      >
+        <Animated.View
+          style={[
+            styles.featureCard, 
+            interactionAnimatedStyle
+          ]}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.iconBox}>
+              <Ionicons name={item.icon} size={22} color="#10B981" />
+            </View>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDescription}>{item.description}</Text>
+          </View>
+
+          <View style={styles.previewBox}>
+            <Animated.Image
+              source={item.imageSource}
+              style={[styles.previewImage, imageAnimatedStyle]}
+              resizeMode="cover"
+            />
+          </View>
+        </Animated.View>
+      </TouchableWithoutFeedback>
+    </Animated.View>
+  );
+};
+
 export default function FeaturesPage() {
   const { width } = useWindowDimensions();
   const isDesktop = width > 1024;
-
-  const featuresData = [
-    {
-      id: '1',
-      icon: 'git-compare-outline' as keyof typeof Ionicons.glyphMap,
-      title: 'Split Expense',
-      description: 'Effortlessly divide shared costs and streamline group reimbursements.',
-      imageSource: require('../assets/images/split.jpg'),
-    },
-    {
-      id: '2',
-      icon: 'trending-up-outline' as keyof typeof Ionicons.glyphMap,
-      title: 'Budget Allocation',
-      description: 'Strategically distribute funds to optimize financial planning goals.',
-      imageSource: require('../assets/images/budget.jpg'),
-    },
-    {
-      id: '3',
-      icon: 'shield-checkmark-outline' as keyof typeof Ionicons.glyphMap,
-      title: 'Bill Reminders',
-      description: 'Automate payment tracking to prevent late fees consistently.',
-      imageSource: require('../assets/images/bill.jpg'),
-    },
-    {
-      id: '4',
-      icon: 'scan-outline' as keyof typeof Ionicons.glyphMap,
-      title: 'AI Receipt Scanner',
-      description: 'Extract expense data instantly using advanced optical recognition.',
-      imageSource: require('../assets/images/scan.jpg'),
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         
-        {/* --- HEADER SECTION --- */}
         <View style={styles.headerSection}>
           <Text style={styles.sectionTitle}>Powerful Features</Text>
           <Text style={styles.sectionSubtitle}>
@@ -56,36 +163,14 @@ export default function FeaturesPage() {
           </Text>
         </View>
 
-        {/* --- FEATURES GRID / LIST --- */}
         <View style={[styles.gridContainer, isDesktop ? styles.gridRow : styles.gridColumn]}>
-          {featuresData.map((item) => (
-            <View 
+          {featuresData.map((item, index) => (
+            <AnimatedFeatureCard 
               key={item.id} 
-              style={[
-                styles.featureCard, 
-                { width: isDesktop ? '23%' : '100%' }
-              ]}
-            >
-              
-              {/* Icon & Details */}
-              <View style={styles.cardHeader}>
-                <View style={styles.iconBox}>
-                  <Ionicons name={item.icon} size={22} color="#10B981" />
-                </View>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDescription}>{item.description}</Text>
-              </View>
-
-              {/* Visual Preview Photo */}
-              <View style={styles.previewBox}>
-                <Image 
-                  source={item.imageSource} 
-                  style={styles.previewImage}
-                  resizeMode="cover"
-                />
-              </View>
-
-            </View>
+              item={item} 
+              index={index} 
+              isDesktop={isDesktop}
+            />
           ))}
         </View>
 
@@ -108,8 +193,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-  
-  /* Header Styles */
   headerSection: {
     alignItems: 'center',
     marginBottom: 50,
@@ -127,8 +210,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.5,
   },
-
-  /* Grid Layout */
   gridContainer: {
     width: '100%',
     gap: 24,
@@ -142,8 +223,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
   },
-
-  /* Feature Card Styles */
   featureCard: {
     backgroundColor: '#1E293B',
     borderRadius: 16,
@@ -185,8 +264,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     lineHeight: 20,
   },
-
-  /* Visual Preview Box Styles */
   previewBox: {
     height: 140,
     backgroundColor: '#0F172A',
