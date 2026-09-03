@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -9,18 +10,97 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
-const isDesktop = width > 900;
-const router = useRouter();
+const subtitles = [
+  "Experience a smarter way to split costs, manage allowances, and track your finances effortlessly.",
+  "Let Payton's AI assistant optimize your monthly budgeting and detect hidden subscription leaks.",
+  "Take full control of shared household expenses with real-time tracking and automated splits."
+];
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { width } = Dimensions.get('window');
+  const isDesktop = width > 900;
+
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(50);
+
+  // Shared values for floating animations
+  const floatAnim1 = useSharedValue(0);
+  const floatAnim2 = useSharedValue(0);
+
+  useEffect(() => {
+    // Phone 1 float loop
+    floatAnim1.value = withRepeat(
+      withSequence(
+        withTiming(-12, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+
+    // Phone 2 float loop (out-of-phase for an organic feel)
+    floatAnim2.value = withRepeat(
+      withSequence(
+        withTiming(12, { duration: 2200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 2200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle1 = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatAnim1.value }],
+  }));
+
+  const animatedStyle2 = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatAnim2.value }],
+  }));
+
+  useEffect(() => {
+    const fullText = subtitles[currentSentenceIndex];
+
+    const handleTyping = () => {
+      if (!isDeleting) {
+        setDisplayedText(fullText.substring(0, displayedText.length + 1));
+        
+        // Pause at the end of typing full sentence
+        if (displayedText === fullText) {
+          setTimeout(() => setIsDeleting(true), 500);
+          setTypingSpeed(5);
+        }
+      } else {
+        setDisplayedText(fullText.substring(0, displayedText.length - 1));
+        
+        // Move to next sentence once deleted
+        if (displayedText === '') {
+          setIsDeleting(false);
+          setCurrentSentenceIndex((prev) => (prev + 1) % subtitles.length);
+          setTypingSpeed(40);
+        }
+      }
+    };
+
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [displayedText, isDeleting, currentSentenceIndex, typingSpeed]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         
-        
-
         {/* --- HERO SECTION --- */}
         <View style={[styles.heroSection, isDesktop ? styles.heroRow : styles.heroColumn]}>
           
@@ -35,7 +115,8 @@ export default function LandingPage() {
             </Text>
 
             <Text style={styles.heroSubtitle}>
-              Experience a smarter way to split costs, manage allowances, and track your financial future effortlessly.
+              {displayedText}
+              <Text style={styles.cursor}>|</Text>
             </Text>
 
             <View style={styles.buttonGroup}>
@@ -48,21 +129,25 @@ export default function LandingPage() {
             </View>
           </View>
 
-          {/* Right Mockup Display Card */}
+          {/* Right Mockup Display Card with Floating Animations */}
           <View style={[styles.mockupCardWrapper, isDesktop ? styles.mockupCardDesktop : null]}>
             <View style={styles.mockupContainer}>
-              <Image
-                source={require('../assets/images/spender.png')}
-                style={styles.mockupImageLarge}
-                resizeMode="cover"
-              />
-
-              {isDesktop && (
+              <Animated.View style={animatedStyle1}>
                 <Image
-                  source={require('../assets/images/sponsor.png')}
-                  style={[styles.mockupImageLarge, styles.phoneMockupOffset]}
+                  source={require('../assets/images/spender.png')}
+                  style={styles.mockupImageLarge}
                   resizeMode="cover"
                 />
+              </Animated.View>
+
+              {isDesktop && (
+                <Animated.View style={animatedStyle2}>
+                  <Image
+                    source={require('../assets/images/sponsor.png')}
+                    style={[styles.mockupImageLarge, styles.phoneMockupOffset]}
+                    resizeMode="cover"
+                  />
+                </Animated.View>
               )}
             </View>
           </View>
@@ -77,7 +162,7 @@ export default function LandingPage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Deep modern dark slate background
+    backgroundColor: '#0F172A',
   },
   container: {
     flexGrow: 1,
@@ -196,7 +281,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94A3B8',
     lineHeight: 26,
-    marginBottom: 32,
+    marginBottom: 25,
+    minHeight: 10,
+  },
+  cursor: {
+    color: '#10B981',
+    fontWeight: 'bold',
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -248,7 +338,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    
   },
   mockupImageLarge: {
     width: 230,
