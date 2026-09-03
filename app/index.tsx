@@ -39,7 +39,7 @@ export default function LandingPage() {
             </Text>
 
             <View style={styles.buttonGroup}>
-              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/features')}>
+              <TouchableOpacity style={styles.primaryButton} onPress={() => router.push('/login')}>
                 <Text style={styles.primaryButtonText}>Start Tracking Now</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/team')}>

@@ -1,15 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    Dimensions,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 900;
@@ -18,11 +19,46 @@ export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Implement your authentication logic here
-    console.log('Logging in with:', email, password);
-    // e.g., router.replace('/dashboard');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert('Please fill in both email and password.');
+      return;
+    }
+
+    setLoading(true);
+
+    // 1. Authenticate credentials via Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password,
+    });
+
+    if (authError || !authData.user) {
+      setLoading(false);
+      alert(authError?.message || 'Invalid email or password.');
+      return;
+    }
+
+    // 2. Check the user's role from the public.profiles table
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profileError || !profileData || profileData.role !== 'Admin') {
+      // Not an admin: terminate session immediately and block entry
+      await supabase.auth.signOut();
+      setLoading(false);
+      alert('Access Denied: Unauthorized. Only Admin accounts can access this portal.');
+      return;
+    }
+
+    setLoading(false);
+    // Successfully verified as Admin
+    router.replace('/(admin)/dashboard');
   };
 
   return (
@@ -83,8 +119,14 @@ export default function LoginScreen() {
             </View>
 
             {/* Action Buttons */}
-            <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
-              <Text style={styles.primaryButtonText}>Sign In</Text>
+            <TouchableOpacity 
+              style={[styles.primaryButton, loading && { opacity: 0.7 }]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.primaryButtonText}>
+                {loading ? 'Signing In...' : 'Sign In'}
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.footerRow}>
@@ -105,7 +147,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Matches landing page background
+    backgroundColor: '#0F172A',
   },
   container: {
     flexGrow: 1,
@@ -131,16 +173,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   loginWrapperDesktop: {
-    backgroundColor: '#1E293B', // Slightly lighter slate card wrapper on desktop screens
+    backgroundColor: '#1E293B',
     padding: 40,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#334155',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
+    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.3)',
   },
   badgeContainer: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -215,11 +253,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 24,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    boxShadow: '0px 4px 8px rgba(16, 185, 129, 0.2)',
   },
   primaryButtonText: {
     color: '#FFFFFF',

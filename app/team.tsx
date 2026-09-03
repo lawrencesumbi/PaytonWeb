@@ -102,7 +102,7 @@ export default function TeamPage() {
           </View>
           <View style={styles.contactItem}>
             <Text style={styles.contactIcon}>📍</Text>
-            <Text style={styles.contactText}>Cebu, PH</Text>
+            <Text style={styles.contactText}>Minglanilla, Cebu, PH</Text>
           </View>
         </View>
 
