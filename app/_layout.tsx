@@ -14,7 +14,18 @@ export default function RootLayout() {
     pathname.startsWith('/signup') || 
     pathname.startsWith('/(auth)') || 
     pathname.includes('/(admin)') || 
-    pathname.startsWith('/dashboard');
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/allowances') ||
+    pathname.startsWith('/budgets') ||
+    pathname.startsWith('/categories') ||
+    pathname.startsWith('/expenses') ||
+    pathname.startsWith('/friends') ||
+    pathname.startsWith('/income') ||
+    pathname.startsWith('/profiles') ||
+    pathname.startsWith('/reminders') ||
+    pathname.startsWith('/split_expenses') ||
+    pathname.startsWith('/split_friends') ||
+    pathname.startsWith('/sponsor_spenders');
 
   return (
     <View style={styles.layoutContainer}>

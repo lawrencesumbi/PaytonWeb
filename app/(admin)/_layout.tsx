@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F172A',
   },
   sidebar: {
-    width: isDesktop ? 280 : '100%',
+    width: isDesktop ? 210 : '100%',
     backgroundColor: '#1E293B',
     borderRightWidth: isDesktop ? 1 : 0,
     borderBottomWidth: isDesktop ? 0 : 1,

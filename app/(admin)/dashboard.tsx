@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router';
 import {
-    Dimensions,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -25,16 +24,7 @@ export default function AdminDashboardScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         
-        {/* Top Navigation Bar */}
-        <View style={styles.navBar}>
-          <View>
-            <Text style={styles.navBrand}>PAYTON <Text style={styles.brandHighlight}>ADMIN</Text></Text>
-            <Text style={styles.navSubtitle}>Control Panel & Overview</Text>
-          </View>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
+        
 
         {/* Dashboard Content Grid */}
         <View style={[styles.statsGrid, isDesktop ? styles.statsGridDesktop : null]}>
