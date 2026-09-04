@@ -1,17 +1,17 @@
 // app/(admin)/_layout.tsx
 import { Redirect, Slot, usePathname, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { supabase } from '../../lib/supabase';
-
-const { width } = Dimensions.get('window');
-const isDesktop = width > 900;
 
 export default function AdminLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
+  
+  const { width } = useWindowDimensions();
+  const isDesktop = width > 900;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,12 +41,39 @@ export default function AdminLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    // Check kon anaa ba sa Web browser o Mobile app
+    if (typeof window !== 'undefined' && window.confirm) {
+      const isConfirmed = window.confirm('Are you sure you want to sign out of your account?');
+      if (isConfirmed) {
+        executeSignOut();
+      }
+    } else {
+      // Para sa Mobile (iOS / Android)
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out of your account?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: () => executeSignOut(),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const executeSignOut = async () => {
     await supabase.auth.signOut();
     router.replace('/(auth)/login' as any);
   };
 
-  // Gi-align nato ang paths sa kung unsa ang makita sa browser URL (e.g. /dashboard)
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', routerPath: '/(admin)/dashboard' },
     { name: 'Allowances', path: '/allowances', routerPath: '/(admin)/allowances' },
@@ -63,16 +90,22 @@ export default function AdminLayout() {
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Sidebar Navigation at the Left Side */}
-      <View style={styles.sidebar}>
+    <View style={[styles.container, { flexDirection: isDesktop ? 'row' : 'column' }]}>
+      {/* Sidebar Navigation */}
+      <View style={[
+        styles.sidebar, 
+        { 
+          width: isDesktop ? 210 : '100%',
+          borderRightWidth: isDesktop ? 1 : 0,
+          borderBottomWidth: isDesktop ? 0 : 1,
+        }
+      ]}>
         <View style={styles.sidebarHeader}>
           <Text style={styles.sidebarBrand}>PAYTON <Text style={styles.brandHighlight}>ADMIN</Text></Text>
         </View>
 
         <ScrollView style={styles.sidebarNavLinks} showsVerticalScrollIndicator={false}>
           {navItems.map((item) => {
-            // Gisusi nato kon ang kasamtangang pathname naglakip ba o natapos sa item path
             const isActive = pathname === item.path || pathname.endsWith(item.path);
             
             return (
@@ -113,14 +146,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    flexDirection: isDesktop ? 'row' : 'column',
     backgroundColor: '#0F172A',
   },
   sidebar: {
-    width: isDesktop ? 210 : '100%',
     backgroundColor: '#1E293B',
-    borderRightWidth: isDesktop ? 1 : 0,
-    borderBottomWidth: isDesktop ? 0 : 1,
     borderBottomColor: '#334155',
     borderRightColor: '#334155',
     paddingVertical: 24,

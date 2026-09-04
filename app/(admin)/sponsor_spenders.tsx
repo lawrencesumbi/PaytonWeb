@@ -1,16 +1,22 @@
 // app/(admin)/sponsor_spenders.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
+
+interface Profile {
+  full_name?: string;
+  name?: string;
+  email?: string;
+}
 
 interface SponsorSpenderItem {
   id: string;
@@ -18,6 +24,8 @@ interface SponsorSpenderItem {
   spender_id: string;
   created_at: string;
   status: string;
+  sponsor?: Profile;
+  spender?: Profile;
 }
 
 export default function SponsorSpendersScreen() {
@@ -36,13 +44,22 @@ export default function SponsorSpendersScreen() {
     setLoading(true);
     const { data, error } = await supabase
       .from('sponsor_spenders')
-      .select('*')
+      .select(`
+        id,
+        sponsor_id,
+        spender_id,
+        created_at,
+        status,
+        sponsor:profiles!sponsor_id(full_name, email),
+        spender:profiles!spender_id(full_name, email)
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching sponsor spenders:', error.message);
     } else {
-      setSponsorSpenders(data || []);
+      // Cast data to unknown first, then to SponsorSpenderItem[] to satisfy TypeScript
+      setSponsorSpenders((data as unknown as SponsorSpenderItem[]) || []);
     }
     setLoading(false);
   };
@@ -90,11 +107,24 @@ export default function SponsorSpendersScreen() {
     }
   };
 
-  const filteredItems = sponsorSpenders.filter(item => 
-    item.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.sponsor_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.spender_id?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = sponsorSpenders.filter(item => {
+    const query = searchQuery.toLowerCase();
+    const sponsorName = item.sponsor?.full_name || item.sponsor?.name || item.sponsor?.email || '';
+    const spenderName = item.spender?.full_name || item.spender?.name || item.spender?.email || '';
+
+    return (
+      item.status?.toLowerCase().includes(query) ||
+      item.sponsor_id?.toLowerCase().includes(query) ||
+      item.spender_id?.toLowerCase().includes(query) ||
+      sponsorName.toLowerCase().includes(query) ||
+      spenderName.toLowerCase().includes(query)
+    );
+  });
+
+  const getDisplayName = (profile?: Profile, fallbackId?: string) => {
+    if (!profile) return fallbackId || 'N/A';
+    return profile.full_name || profile.name || profile.email || fallbackId || 'N/A';
+  };
 
   return (
     <View style={styles.container}>
@@ -106,7 +136,7 @@ export default function SponsorSpendersScreen() {
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search status, sponsor or spender ID..."
+          placeholder="Search status, names, or IDs..."
           placeholderTextColor="#64748B"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -122,8 +152,8 @@ export default function SponsorSpendersScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Sponsor ID</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Spender ID</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Sponsor</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Spender</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colStatus]}>Status</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Created At</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colActions]}>Actions</Text>
@@ -139,10 +169,10 @@ export default function SponsorSpendersScreen() {
               filteredItems.map((item) => (
                 <View key={item.id} style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.colId, styles.textMuted]} numberOfLines={1}>
-                    {item.sponsor_id}
+                    {getDisplayName(item.sponsor, item.sponsor_id)}
                   </Text>
                   <Text style={[styles.tableCell, styles.colId, styles.textMuted]} numberOfLines={1}>
-                    {item.spender_id}
+                    {getDisplayName(item.spender, item.spender_id)}
                   </Text>
                   <View style={[styles.tableCell, styles.colStatus]}>
                     <View style={[styles.badge, item.status?.toLowerCase() === 'accepted' ? styles.badgeAccepted : styles.badgePending]}>
@@ -378,6 +408,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    paddingTop: 10,
     color: '#F8FAFC',
     fontSize: 14,
     marginBottom: 16,
