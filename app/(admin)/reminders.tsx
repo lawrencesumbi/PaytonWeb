@@ -1,14 +1,15 @@
 // app/(admin)/reminders.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -68,37 +69,50 @@ export default function RemindersScreen() {
   const handleSaveEdit = async () => {
     if (!editingItem) return;
 
+    const parsedAmount = parseFloat(amount);
+
     const { error } = await supabase
       .from('reminders')
       .update({
-        title: title,
-        amount: parseFloat(amount) || 0,
+        title: title.trim(),
+        amount: isNaN(parsedAmount) ? 0 : parsedAmount,
         due_date: dueDate,
         status: status,
       })
       .eq('id', editingItem.id);
 
     if (error) {
-      alert('Error updating reminder: ' + error.message);
+      Alert.alert('Error', 'Error updating reminder: ' + error.message);
     } else {
       setModalVisible(false);
       fetchReminders();
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this reminder record?')) return;
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this reminder record?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase
+              .from('reminders')
+              .delete()
+              .eq('id', id);
 
-    const { error } = await supabase
-      .from('reminders')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      alert('Error deleting reminder: ' + error.message);
-    } else {
-      fetchReminders();
-    }
+            if (error) {
+              Alert.alert('Error', 'Error deleting reminder: ' + error.message);
+            } else {
+              fetchReminders();
+            }
+          },
+        },
+      ]
+    );
   };
 
   const filteredReminders = reminders.filter(item => 
@@ -106,6 +120,48 @@ export default function RemindersScreen() {
     item.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.amount?.toString().includes(searchQuery)
   );
+
+  const renderItem = ({ item, index }: { item: ReminderItem; index: number }) => {
+    const isPaid = item.status?.toLowerCase() === 'paid';
+
+    return (
+      <View style={styles.tableRow}>
+        <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+          {index + 1}
+        </Text>
+        <Text style={[styles.tableCell, styles.colTitle, styles.textWhite]} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
+          ₱{Number(item.amount || 0).toLocaleString()}
+        </Text>
+        <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
+          {item.due_date || 'N/A'}
+        </Text>
+        <View style={[styles.tableCell, styles.colStatus]}>
+          <View style={[styles.badge, isPaid ? styles.badgePaid : styles.badgePending]}>
+            <Text style={[styles.badgeText, isPaid ? styles.badgeTextPaid : styles.badgeTextPending]}>
+              {item.status || 'pending'}
+            </Text>
+          </View>
+        </View>
+        <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => handleOpenEdit(item)}
+          >
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton} 
+            onPress={() => handleDelete(item.id)}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -133,6 +189,7 @@ export default function RemindersScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colTitle]}>Title</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Due Date</Text>
@@ -141,48 +198,17 @@ export default function RemindersScreen() {
           </View>
 
           {/* Table Body */}
-          <ScrollView style={{ maxHeight: 600 }}>
-            {filteredReminders.length === 0 ? (
+          <FlatList
+            data={filteredReminders}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={{ flexGrow: 1 }}
+            ListEmptyComponent={
               <View style={styles.emptyRow}>
                 <Text style={styles.emptyText}>No reminder records found.</Text>
               </View>
-            ) : (
-              filteredReminders.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colTitle, styles.textWhite]} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
-                    ₱{Number(item.amount).toLocaleString()}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
-                    {item.due_date}
-                  </Text>
-                  <View style={[styles.tableCell, styles.colStatus]}>
-                    <View style={[styles.badge, item.status?.toLowerCase() === 'paid' ? styles.badgePaid : styles.badgePending]}>
-                      <Text style={[styles.badgeText, item.status?.toLowerCase() === 'paid' ? styles.badgeTextPaid : styles.badgeTextPending]}>
-                        {item.status || 'pending'}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
-                    <TouchableOpacity 
-                      style={styles.editButton} 
-                      onPress={() => handleOpenEdit(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteButton} 
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </ScrollView>
+            }
+          />
         </View>
       )}
 
@@ -309,6 +335,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.6 },
   colTitle: { flex: 2 },
   colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },

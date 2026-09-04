@@ -1,14 +1,16 @@
 // app/(admin)/expenses.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -52,6 +54,22 @@ export default function ExpensesScreen() {
 
   useEffect(() => {
     fetchExpenses();
+
+    // Real-time listener for live updates across admin panels
+    const channel = supabase
+      .channel('public:expenses')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses' },
+        () => {
+          fetchExpenses();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleOpenEdit = (item: Expense) => {
@@ -64,11 +82,17 @@ export default function ExpensesScreen() {
   const handleSaveEdit = async () => {
     if (!editingItem) return;
 
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount < 0) {
+      alert('Please enter a valid positive amount.');
+      return;
+    }
+
     const { error } = await supabase
       .from('expenses')
       .update({
-        description: description,
-        amount: parseFloat(amount) || 0,
+        description: description.trim(),
+        amount: parsedAmount,
       })
       .eq('id', editingItem.id);
 
@@ -80,24 +104,70 @@ export default function ExpensesScreen() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this expense record?')) return;
+  const handleDelete = (id: string) => {
+    const executeDelete = async () => {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
 
-    const { error } = await supabase
-      .from('expenses')
-      .delete()
-      .eq('id', id);
+      if (error) {
+        alert('Error deleting record: ' + error.message);
+      } else {
+        fetchExpenses();
+      }
+    };
 
-    if (error) {
-      alert('Error deleting record: ' + error.message);
+    if (Platform.OS === 'web') {
+      if (confirm('Are you sure you want to delete this expense record?')) {
+        executeDelete();
+      }
     } else {
-      fetchExpenses();
+      Alert.alert(
+        'Delete Expense',
+        'Are you sure you want to delete this expense record?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: executeDelete },
+        ]
+      );
     }
   };
 
   const filteredExpenses = expenses.filter(item => 
     item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.amount?.toString().includes(searchQuery)
+  );
+
+  const renderExpenseRow = ({ item, index }: { item: Expense; index: number }) => (
+    <View style={styles.tableRow}>
+      <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+        {index + 1}
+      </Text>
+      <Text style={[styles.tableCell, styles.colDesc, styles.textWhite]} numberOfLines={1}>
+        {item.description}
+      </Text>
+      <Text style={[styles.tableCell, styles.colAmount, styles.textRed]}>
+        ₱{Number(item.amount).toLocaleString()}
+      </Text>
+      <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
+        {new Date(item.spent_at).toLocaleDateString()}
+      </Text>
+      <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => handleOpenEdit(item)}
+        >
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={() => handleDelete(item.id)}
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -126,6 +196,7 @@ export default function ExpensesScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDesc]}>Description</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Spent At</Text>
@@ -133,41 +204,17 @@ export default function ExpensesScreen() {
           </View>
 
           {/* Table Body */}
-          <ScrollView style={{ maxHeight: 600 }}>
-            {filteredExpenses.length === 0 ? (
+          <FlatList
+            data={filteredExpenses}
+            keyExtractor={(item) => item.id}
+            renderItem={renderExpenseRow}
+            ListEmptyComponent={
               <View style={styles.emptyRow}>
                 <Text style={styles.emptyText}>No expense records found.</Text>
               </View>
-            ) : (
-              filteredExpenses.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colDesc, styles.textWhite]} numberOfLines={1}>
-                    {item.description}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colAmount, styles.textRed]}>
-                    ₱{Number(item.amount).toLocaleString()}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
-                    {new Date(item.spent_at).toLocaleDateString()}
-                  </Text>
-                  <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
-                    <TouchableOpacity 
-                      style={styles.editButton} 
-                      onPress={() => handleOpenEdit(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteButton} 
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </ScrollView>
+            }
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
         </View>
       )}
 
@@ -278,7 +325,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  colDesc: { flex: 2.5 },
+  colNo: { flex: 0.8 },
+  colDesc: { flex: 2.2 },
   colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },
   colActions: { flex: 2, alignItems: 'flex-end' },

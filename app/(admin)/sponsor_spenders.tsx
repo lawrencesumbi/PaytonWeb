@@ -152,6 +152,7 @@ export default function SponsorSpendersScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Sponsor</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colId]}>Spender</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colStatus]}>Status</Text>
@@ -166,8 +167,11 @@ export default function SponsorSpendersScreen() {
                 <Text style={styles.emptyText}>No sponsor spender records found.</Text>
               </View>
             ) : (
-              filteredItems.map((item) => (
+              filteredItems.map((item, index) => (
                 <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                    {index + 1}
+                  </Text>
                   <Text style={[styles.tableCell, styles.colId, styles.textMuted]} numberOfLines={1}>
                     {getDisplayName(item.sponsor, item.sponsor_id)}
                   </Text>
@@ -303,6 +307,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.6 },
   colId: { flex: 2 },
   colStatus: { flex: 1.2 },
   colDate: { flex: 1.5 },

@@ -1,14 +1,14 @@
 // app/(admin)/split_friends.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -19,6 +19,9 @@ interface SplitFriendItem {
   owed_amount: number;
   status: string;
   updated_at: string;
+  profiles?: {
+    full_name?: string;
+  } | null;
 }
 
 export default function SplitFriendsScreen() {
@@ -36,9 +39,10 @@ export default function SplitFriendsScreen() {
 
   const fetchSplitFriends = async () => {
     setLoading(true);
+    // Joins the split_friends table with the profiles table using friend_id
     const { data, error } = await supabase
       .from('split_friends')
-      .select('*')
+      .select('*, profiles:friend_id (full_name)')
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -97,6 +101,7 @@ export default function SplitFriendsScreen() {
   const filteredFriends = splitFriends.filter(item => 
     item.status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.owed_amount?.toString().includes(searchQuery) ||
+    item.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.friend_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -110,7 +115,7 @@ export default function SplitFriendsScreen() {
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search status, amount, or friend ID..."
+          placeholder="Search name, status, or amount..."
           placeholderTextColor="#64748B"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -126,7 +131,8 @@ export default function SplitFriendsScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colFriend]}>Friend ID</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colFriend]}>Friend Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Owed Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colStatus]}>Status</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Updated At</Text>
@@ -140,10 +146,13 @@ export default function SplitFriendsScreen() {
                 <Text style={styles.emptyText}>No split friend records found.</Text>
               </View>
             ) : (
-              filteredFriends.map((item) => (
+              filteredFriends.map((item, index) => (
                 <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colFriend, styles.textMuted]} numberOfLines={1}>
-                    {item.friend_id}
+                  <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                    {index + 1}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colFriend, styles.textPrimary]} numberOfLines={1}>
+                    {item.profiles?.full_name || 'Unknown Friend'}
                   </Text>
                   <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
                     ₱{Number(item.owed_amount).toLocaleString()}
@@ -286,13 +295,15 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  colFriend: { flex: 2 },
-  colAmount: { flex: 1.5 },
-  colStatus: { flex: 1.2 },
-  colDate: { flex: 1.5 },
-  colActions: { flex: 1.8, alignItems: 'flex-end' },
+  colNo: { flex: 0.6 },
+  colFriend: { flex: 2.2 },
+  colAmount: { flex: 1.3 },
+  colStatus: { flex: 1.1 },
+  colDate: { flex: 1.3 },
+  colActions: { flex: 1.6, alignItems: 'flex-end' },
   textGreen: { color: '#34D399', fontWeight: '700' },
   textMuted: { color: '#94A3B8' },
+  textPrimary: { color: '#F8FAFC', fontWeight: '600' },
   badge: {
     alignSelf: 'flex-start',
     paddingVertical: 4,

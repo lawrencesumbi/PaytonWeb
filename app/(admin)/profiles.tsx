@@ -1,14 +1,15 @@
 // app/(admin)/profiles.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -65,32 +66,43 @@ export default function ProfilesScreen() {
     const { error } = await supabase
       .from('profiles')
       .update({
-        full_name: fullName,
-        role: role,
+        full_name: fullName.trim(),
+        role: role.trim(),
       })
       .eq('id', editingItem.id);
 
     if (error) {
-      alert('Error updating profile: ' + error.message);
+      Alert.alert('Error', 'Error updating profile: ' + error.message);
     } else {
       setModalVisible(false);
       fetchProfiles();
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user profile?')) return;
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this user profile?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase
+              .from('profiles')
+              .delete()
+              .eq('id', id);
 
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      alert('Error deleting profile: ' + error.message);
-    } else {
-      fetchProfiles();
-    }
+            if (error) {
+              Alert.alert('Error', 'Error deleting profile: ' + error.message);
+            } else {
+              fetchProfiles();
+            }
+          },
+        },
+      ]
+    );
   };
 
   const filteredProfiles = profiles.filter(item => 
@@ -98,6 +110,45 @@ export default function ProfilesScreen() {
     item.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.role?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const renderItem = ({ item, index }: { item: ProfileItem; index: number }) => {
+    const isAdmin = item.role?.toLowerCase() === 'admin';
+
+    return (
+      <View style={styles.tableRow}>
+        <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+          {index + 1}
+        </Text>
+        <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
+          {item.full_name || 'No Name'}
+        </Text>
+        <Text style={[styles.tableCell, styles.colEmail, styles.textMuted]} numberOfLines={1}>
+          {item.email || 'No Email'}
+        </Text>
+        <View style={[styles.tableCell, styles.colRole]}>
+          <View style={[styles.badge, isAdmin ? styles.badgeAdmin : styles.badgeUser]}>
+            <Text style={[styles.badgeText, isAdmin ? styles.badgeTextAdmin : styles.badgeTextUser]}>
+              {item.role || 'User'}
+            </Text>
+          </View>
+        </View>
+        <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => handleOpenEdit(item)}
+          >
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton} 
+            onPress={() => handleDelete(item.id)}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -125,6 +176,7 @@ export default function ProfilesScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colName]}>Full Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colEmail]}>Email</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colRole]}>Role</Text>
@@ -132,45 +184,17 @@ export default function ProfilesScreen() {
           </View>
 
           {/* Table Body */}
-          <ScrollView style={{ maxHeight: 600 }}>
-            {filteredProfiles.length === 0 ? (
+          <FlatList
+            data={filteredProfiles}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={{ flexGrow: 1 }}
+            ListEmptyComponent={
               <View style={styles.emptyRow}>
                 <Text style={styles.emptyText}>No profile records found.</Text>
               </View>
-            ) : (
-              filteredProfiles.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
-                    {item.full_name || 'No Name'}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colEmail, styles.textMuted]} numberOfLines={1}>
-                    {item.email || 'No Email'}
-                  </Text>
-                  <View style={[styles.tableCell, styles.colRole]}>
-                    <View style={[styles.badge, item.role === 'Admin' ? styles.badgeAdmin : styles.badgeUser]}>
-                      <Text style={[styles.badgeText, item.role === 'Admin' ? styles.badgeTextAdmin : styles.badgeTextUser]}>
-                        {item.role || 'User'}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
-                    <TouchableOpacity 
-                      style={styles.editButton} 
-                      onPress={() => handleOpenEdit(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteButton} 
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </ScrollView>
+            }
+          />
         </View>
       )}
 
@@ -280,6 +304,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.6 },
   colName: { flex: 2 },
   colEmail: { flex: 2.5 },
   colRole: { flex: 1.5 },

@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -55,6 +57,22 @@ export default function AllowancesScreen() {
 
   useEffect(() => {
     fetchAllowances();
+
+    // Real-time listener for live updates
+    const channel = supabase
+      .channel('public:allowances')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'allowances' },
+        () => {
+          fetchAllowances();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleOpenEdit = (item: Allowance) => {
@@ -87,18 +105,33 @@ export default function AllowancesScreen() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this allowance record?')) return;
+  const handleDelete = (id: string) => {
+    const executeDelete = async () => {
+      const { error } = await supabase
+        .from('allowances')
+        .delete()
+        .eq('id', id);
 
-    const { error } = await supabase
-      .from('allowances')
-      .delete()
-      .eq('id', id);
+      if (error) {
+        alert('Error deleting record: ' + error.message);
+      } else {
+        fetchAllowances();
+      }
+    };
 
-    if (error) {
-      alert('Error deleting record: ' + error.message);
+    if (Platform.OS === 'web') {
+      if (confirm('Are you sure you want to delete this allowance record?')) {
+        executeDelete();
+      }
     } else {
-      fetchAllowances();
+      Alert.alert(
+        'Delete Allowance',
+        'Are you sure you want to delete this allowance record?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: executeDelete },
+        ]
+      );
     }
   };
 
@@ -133,6 +166,7 @@ export default function AllowancesScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colName]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Start Date</Text>
@@ -147,8 +181,11 @@ export default function AllowancesScreen() {
                 <Text style={styles.emptyText}>No allowance records found.</Text>
               </View>
             ) : (
-              filteredAllowances.map((item) => (
+              filteredAllowances.map((item, index) => (
                 <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                    {index + 1}
+                  </Text>
                   <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
                     {item.allowance_name}
                   </Text>
@@ -305,6 +342,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.8 },
   colName: { flex: 2 },
   colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },

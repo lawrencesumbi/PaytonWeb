@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +22,9 @@ interface Budget {
   created_at: string;
   allowance_id: string | null;
   income_id: string | null;
+  // Joined fields for display names
+  users?: { email?: string; full_name?: string } | null;
+  categories?: { name?: string } | null;
 }
 
 export default function BudgetsScreen() {
@@ -36,9 +41,14 @@ export default function BudgetsScreen() {
 
   const fetchBudgets = async () => {
     setLoading(true);
+    // Fetch budgets along with user profile/email and category name
     const { data, error } = await supabase
       .from('budgets')
-      .select('*')
+      .select(`
+        *,
+        users:user_id (email, full_name),
+        categories:category_id (name)
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -51,6 +61,22 @@ export default function BudgetsScreen() {
 
   useEffect(() => {
     fetchBudgets();
+
+    // Real-time listener for live updates
+    const channel = supabase
+      .channel('public:budgets')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'budgets' },
+        () => {
+          fetchBudgets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleOpenEdit = (item: Budget) => {
@@ -77,26 +103,48 @@ export default function BudgetsScreen() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this budget record?')) return;
+  const handleDelete = (id: string) => {
+    const executeDelete = async () => {
+      const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('id', id);
 
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('id', id);
+      if (error) {
+        alert('Error deleting record: ' + error.message);
+      } else {
+        fetchBudgets();
+      }
+    };
 
-    if (error) {
-      alert('Error deleting record: ' + error.message);
+    if (Platform.OS === 'web') {
+      if (confirm('Are you sure you want to delete this budget record?')) {
+        executeDelete();
+      }
     } else {
-      fetchBudgets();
+      Alert.alert(
+        'Delete Budget',
+        'Are you sure you want to delete this budget record?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: executeDelete },
+        ]
+      );
     }
   };
 
-  const filteredBudgets = budgets.filter(item => 
-    item.allocated_amount?.toString().includes(searchQuery) ||
-    item.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBudgets = budgets.filter(item => {
+    const amountStr = item.allocated_amount?.toString() || '';
+    const userIdentifier = item.users?.full_name || item.users?.email || item.user_id || '';
+    const categoryName = item.categories?.name || item.category_id || '';
+    const query = searchQuery.toLowerCase();
+
+    return (
+      amountStr.includes(query) ||
+      userIdentifier.toLowerCase().includes(query) ||
+      categoryName.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <View style={styles.container}>
@@ -108,7 +156,7 @@ export default function BudgetsScreen() {
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by amount or ID..."
+          placeholder="Search by amount, user, or category..."
           placeholderTextColor="#64748B"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -124,10 +172,11 @@ export default function BudgetsScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Created At</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colIds]}>User ID</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.colIds]}>Category ID</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colUser]}>User</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colCategory]}>Category</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colActions]}>Actions</Text>
           </View>
 
@@ -138,36 +187,44 @@ export default function BudgetsScreen() {
                 <Text style={styles.emptyText}>No budget records found.</Text>
               </View>
             ) : (
-              filteredBudgets.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
-                    ₱{Number(item.allocated_amount).toLocaleString()}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colIds, styles.textMuted]} numberOfLines={1}>
-                    {item.user_id}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colIds, styles.textMuted]} numberOfLines={1}>
-                    {item.category_id}
-                  </Text>
-                  <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
-                    <TouchableOpacity 
-                      style={styles.editButton} 
-                      onPress={() => handleOpenEdit(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteButton} 
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
+              filteredBudgets.map((item, index) => {
+                const userName = item.users?.full_name || item.users?.email || 'Unknown User';
+                const categoryName = item.categories?.name || 'Uncategorized';
+
+                return (
+                  <View key={item.id} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                      {index + 1}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.colAmount, styles.textGreen]}>
+                      ₱{Number(item.allocated_amount).toLocaleString()}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.colUser, styles.textWhite]} numberOfLines={1}>
+                      {userName}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.colCategory, styles.textGreen]} numberOfLines={1}>
+                      {categoryName}
+                    </Text>
+                    <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
+                      <TouchableOpacity 
+                        style={styles.editButton} 
+                        onPress={() => handleOpenEdit(item)}
+                      >
+                        <Text style={styles.editButtonText}>Edit</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.deleteButton} 
+                        onPress={() => handleDelete(item.id)}
+                      >
+                        <Text style={styles.deleteButtonText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             )}
           </ScrollView>
         </View>
@@ -272,9 +329,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.8 },
   colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },
-  colIds: { flex: 2 },
+  colUser: { flex: 2 },
+  colCategory: { flex: 2 },
   colActions: { flex: 2, alignItems: 'flex-end' },
   textWhite: { color: '#F8FAFC', fontWeight: '600' },
   textGreen: { color: '#34D399', fontWeight: '700' },

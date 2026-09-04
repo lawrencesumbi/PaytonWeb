@@ -1,14 +1,16 @@
 // app/(admin)/categories.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -52,6 +54,22 @@ export default function CategoriesScreen() {
 
   useEffect(() => {
     fetchCategories();
+
+    // Real-time listener for live updates across admin panels
+    const channel = supabase
+      .channel('public:categories')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'categories' },
+        () => {
+          fetchCategories();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleOpenEdit = (item: Category) => {
@@ -68,9 +86,9 @@ export default function CategoriesScreen() {
     const { error } = await supabase
       .from('categories')
       .update({
-        name: categoryName,
-        icon: categoryIcon,
-        color: categoryColor || null,
+        name: categoryName.trim(),
+        icon: categoryIcon.trim(),
+        color: categoryColor.trim() || null,
       })
       .eq('id', editingItem.id);
 
@@ -82,24 +100,76 @@ export default function CategoriesScreen() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category record?')) return;
+  const handleDelete = (id: string) => {
+    const executeDelete = async () => {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
 
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
+      if (error) {
+        alert('Error deleting record: ' + error.message);
+      } else {
+        fetchCategories();
+      }
+    };
 
-    if (error) {
-      alert('Error deleting record: ' + error.message);
+    if (Platform.OS === 'web') {
+      if (confirm('Are you sure you want to delete this category record?')) {
+        executeDelete();
+      }
     } else {
-      fetchCategories();
+      Alert.alert(
+        'Delete Category',
+        'Are you sure you want to delete this category record?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: executeDelete },
+        ]
+      );
     }
   };
 
   const filteredCategories = categories.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.icon?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderCategoryRow = ({ item, index }: { item: Category; index: number }) => (
+    <View style={styles.tableRow}>
+      <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+        {index + 1}
+      </Text>
+      <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
+        {item.name}
+      </Text>
+      <Text style={[styles.tableCell, styles.colIcon, styles.textGreen]} numberOfLines={1}>
+        {item.icon}
+      </Text>
+      <Text style={[styles.tableCell, styles.colColor, styles.textMuted]} numberOfLines={1}>
+        {item.color || 'NULL'}
+      </Text>
+      <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
+        {new Date(item.created_at).toLocaleDateString()}
+      </Text>
+      <Text style={[styles.tableCell, styles.colIds, styles.textMuted]} numberOfLines={1}>
+        {item.user_id || 'NULL'}
+      </Text>
+      <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => handleOpenEdit(item)}
+        >
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={() => handleDelete(item.id)}
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -128,6 +198,7 @@ export default function CategoriesScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colName]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colIcon]}>Icon</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colColor]}>Color</Text>
@@ -137,47 +208,17 @@ export default function CategoriesScreen() {
           </View>
 
           {/* Table Body */}
-          <ScrollView style={{ maxHeight: 600 }}>
-            {filteredCategories.length === 0 ? (
+          <FlatList
+            data={filteredCategories}
+            keyExtractor={(item) => item.id}
+            renderItem={renderCategoryRow}
+            ListEmptyComponent={
               <View style={styles.emptyRow}>
                 <Text style={styles.emptyText}>No category records found.</Text>
               </View>
-            ) : (
-              filteredCategories.map((item) => (
-                <View key={item.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colIcon, styles.textGreen]} numberOfLines={1}>
-                    {item.icon}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colColor, styles.textMuted]} numberOfLines={1}>
-                    {item.color || 'NULL'}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colDate, styles.textMuted]}>
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colIds, styles.textMuted]} numberOfLines={1}>
-                    {item.user_id || 'NULL'}
-                  </Text>
-                  <View style={[styles.tableCell, styles.colActions, styles.actionsContainer]}>
-                    <TouchableOpacity 
-                      style={styles.editButton} 
-                      onPress={() => handleOpenEdit(item)}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteButton} 
-                      onPress={() => handleDelete(item.id)}
-                    >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </ScrollView>
+            }
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
         </View>
       )}
 
@@ -295,6 +336,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.8 },
   colName: { flex: 2 },
   colIcon: { flex: 2 },
   colColor: { flex: 1.5 },

@@ -1,14 +1,14 @@
 // app/(admin)/friends.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -124,6 +124,7 @@ export default function FriendsScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colName]}>Full Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colEmail]}>Email</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Created At</Text>
@@ -137,8 +138,11 @@ export default function FriendsScreen() {
                 <Text style={styles.emptyText}>No friend records found.</Text>
               </View>
             ) : (
-              filteredFriends.map((item) => (
+              filteredFriends.map((item, index) => (
                 <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                    {index + 1}
+                  </Text>
                   <Text style={[styles.tableCell, styles.colName, styles.textWhite]} numberOfLines={1}>
                     {item.full_name}
                   </Text>
@@ -276,6 +280,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.6 },
   colName: { flex: 2 },
   colEmail: { flex: 2.5 },
   colDate: { flex: 1.5 },

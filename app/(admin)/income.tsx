@@ -1,14 +1,14 @@
 // app/(admin)/income.tsx
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
@@ -132,6 +132,7 @@ export default function IncomeScreen() {
         <View style={styles.tableContainer}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.colNo]}>No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colSource]}>Source Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colAmount]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.colDate]}>Start Date</Text>
@@ -146,8 +147,11 @@ export default function IncomeScreen() {
                 <Text style={styles.emptyText}>No income records found.</Text>
               </View>
             ) : (
-              filteredIncomes.map((item) => (
+              filteredIncomes.map((item, index) => (
                 <View key={item.id} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.colNo, styles.textMuted]}>
+                    {index + 1}
+                  </Text>
                   <Text style={[styles.tableCell, styles.colSource, styles.textWhite]} numberOfLines={1}>
                     {item.source_name}
                   </Text>
@@ -304,6 +308,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  colNo: { flex: 0.6 },
   colSource: { flex: 2 },
   colAmount: { flex: 1.5 },
   colDate: { flex: 1.5 },
