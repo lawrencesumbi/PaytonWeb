@@ -1,14 +1,81 @@
 import { Slot, usePathname, useRouter } from 'expo-router';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { Animated, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 900;
+
+const PUBLIC_ROUTES = ['/', '/features', '/about', '/team'];
+const IDLE_TIMEOUT = 5000; // 5 seconds nga walay lihok sa mouse sa dili pa mo-auto slide
 
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // I-check kung ang page kay naa sa auth (login/signup) O kaya sa admin routes
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const isPublicPage = PUBLIC_ROUTES.includes(pathname);
+
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Function para i-trigger ang slide transition
+  const triggerSlide = useCallback(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      const currentIndex = PUBLIC_ROUTES.indexOf(pathname);
+      const nextIndex = (currentIndex + 1) % PUBLIC_ROUTES.length;
+      router.push(PUBLIC_ROUTES[nextIndex] as any);
+
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [pathname, router, fadeAnim]);
+
+  // Handle Mouse Movement to detect if user is active/idle
+  const handleMouseMove = () => {
+    // 1. Kung naay paglihok, i-clear ang kasamtangang idle timer ug auto-slide interval
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+
+    // 2. Maghulat og 3 seconds nga walay lihok sa mouse sa dili pa i-activate ang auto slide
+    if (isPublicPage) {
+      idleTimerRef.current = setTimeout(() => {
+        // Sugdan ang interval nga mo-slide every 3 seconds kung nagpadayon ang pagka-idle
+        triggerSlide();
+        slideIntervalRef.current = setInterval(() => {
+          triggerSlide();
+        }, IDLE_TIMEOUT);
+      }, IDLE_TIMEOUT);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPublicPage) {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+      return;
+    }
+
+    // Initial idle trigger pag-abot sa public page
+    idleTimerRef.current = setTimeout(() => {
+      triggerSlide();
+      slideIntervalRef.current = setInterval(() => {
+        triggerSlide();
+      }, IDLE_TIMEOUT);
+    }, IDLE_TIMEOUT);
+
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+    };
+  }, [pathname, isPublicPage, triggerSlide]);
+
   const hideNavbar = 
     pathname.startsWith('/login') || 
     pathname.startsWith('/signup') || 
@@ -28,8 +95,11 @@ export default function RootLayout() {
     pathname.startsWith('/sponsor_spenders');
 
   return (
-    <View style={styles.layoutContainer}>
-      {/* --- SHARED TOP NAVIGATION BAR (I-hide kung auth o admin route na) --- */}
+    // Gigamit ang @ts-ignore o web event prop para ma-detect ang mouse move sa desktop web browser
+    <View 
+      style={styles.layoutContainer} 
+      {...({ onMouseMove: handleMouseMove } as any)}
+    >
       {!hideNavbar && (
         <View style={styles.navbar}>
           <TouchableOpacity 
@@ -72,10 +142,9 @@ export default function RootLayout() {
         </View>
       )}
 
-      {/* --- PAGE CONTENT SLOT --- */}
-      <View style={styles.contentContainer}>
+      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
         <Slot />
-      </View>
+      </Animated.View>
     </View>
   );
 }
