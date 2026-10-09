@@ -134,7 +134,7 @@ export default function LandingPage() {
             <View style={styles.mockupContainer}>
               <Animated.View style={animatedStyle1}>
                 <Image
-                  source={require('../assets/images/spender.png')}
+                  source={require('../assets/images/spender.jpg')}
                   style={styles.mockupImageLarge}
                   resizeMode="cover"
                 />
@@ -143,7 +143,7 @@ export default function LandingPage() {
               {isDesktop && (
                 <Animated.View style={animatedStyle2}>
                   <Image
-                    source={require('../assets/images/sponsor.png')}
+                    source={require('../assets/images/sponsor.jpg')}
                     style={[styles.mockupImageLarge, styles.phoneMockupOffset]}
                     resizeMode="cover"
                   />
@@ -293,17 +293,14 @@ const styles = StyleSheet.create({
     gap: 16,
     flexWrap: 'wrap',
   },
-  primaryButton: {
-    backgroundColor: '#10B981',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 12,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+ primaryButton: {
+  backgroundColor: '#10B981',
+  paddingVertical: 14,
+  paddingHorizontal: 28,
+  borderRadius: 12,
+  boxShadow: '0px 4px 8px rgba(16, 185, 129, 0.2)',
+  elevation: 4,
+},
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
