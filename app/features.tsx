@@ -100,11 +100,13 @@ const AnimatedFeatureCard = ({
       ? 'rgba(16, 185, 129, 0.8)' 
       : 'rgba(51, 65, 85, 1)';
 
+    const shadowOpacityVal = interpolate(pressed.value, [0, 1], [0.2, 0.4]);
+    const shadowRadiusVal = interpolate(pressed.value, [0, 1], [8, 12]);
+
     return {
       transform: [{ scale }],
       borderColor: borderColor,
-      shadowOpacity: interpolate(pressed.value, [0, 1], [0.2, 0.4]),
-      shadowRadius: interpolate(pressed.value, [0, 1], [8, 12]),
+      boxShadow: `0px 4px ${shadowRadiusVal}px rgba(0, 0, 0, ${shadowOpacityVal})`,
     };
   });
 
@@ -232,10 +234,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#334155',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     elevation: 4,
   },
   cardHeader: {

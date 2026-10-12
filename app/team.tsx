@@ -111,7 +111,7 @@ export default function TeamPage() {
               <View key={`${member.id}-${index}`} style={styles.memberCard}>
                 <View style={styles.avatarContainer}>
                   <View style={styles.avatarPlaceholder}>
-                    <Image source={member.image} style={styles.avatarImage} />
+                    <Image source={member.image} style={styles.avatarImage} resizeMode="cover" />
                   </View>
                 </View>
                 <Text style={styles.memberName} numberOfLines={2}>{member.name}</Text>
@@ -197,10 +197,7 @@ const styles = StyleSheet.create({
     width: 220,
     borderWidth: 1,
     borderColor: '#334155',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     elevation: 4,
   },
   avatarContainer: {
@@ -220,7 +217,6 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   memberName: {
     fontSize: 14,
@@ -251,10 +247,7 @@ const styles = StyleSheet.create({
     gap: 15,
     borderWidth: 1,
     borderColor: '#334155',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     elevation: 4,
   },
   contactItem: {
